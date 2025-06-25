@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import List, Optional, Dict, Any
-from beanie import Document, Indexed
+from beanie import Document
 from pydantic import Field, HttpUrl
 from pymongo import IndexModel, TEXT
 
@@ -15,15 +15,15 @@ class ProjectLinks(Document):
 class Project(Document):
     """Project model for portfolio items"""
     
-    title: Indexed(str) = Field(..., min_length=1, max_length=200)
+    title: str = Field(..., min_length=1, max_length=200)
     description: str = Field(..., min_length=1, max_length=2000)
     short_description: Optional[str] = Field(None, max_length=300)
     technologies: List[str] = Field(default_factory=list)
     images: List[str] = Field(default_factory=list)  # URLs to uploaded images
     thumbnail: Optional[str] = None  # Main thumbnail image
     links: Optional[ProjectLinks] = None
-    category: Indexed(str) = Field(..., min_length=1, max_length=50)
-    featured: Indexed(bool) = Field(default=False)
+    category: str = Field(..., min_length=1, max_length=50)
+    featured: bool = Field(default=False)
     order: Optional[int] = Field(default=0)  # For manual ordering
     status: str = Field(default="published")  # published, draft, archived
     slug: Optional[str] = None  # URL-friendly version of title

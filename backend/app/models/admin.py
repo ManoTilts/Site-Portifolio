@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from beanie import Document, Indexed
+from beanie import Document
 from pydantic import Field, EmailStr
 from pymongo import IndexModel
 
@@ -8,8 +8,8 @@ from pymongo import IndexModel
 class Admin(Document):
     """Admin user model for authentication"""
     
-    username: Indexed(str, unique=True) = Field(..., min_length=3, max_length=50)
-    email: Indexed(EmailStr, unique=True) = Field(...)
+    username: str = Field(..., min_length=3, max_length=50)
+    email: EmailStr = Field(...)
     hashed_password: str = Field(...)
     full_name: Optional[str] = Field(None, max_length=100)
     is_active: bool = Field(default=True)

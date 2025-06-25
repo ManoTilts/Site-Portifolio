@@ -11,6 +11,7 @@ from app.schemas.project import (
 )
 from app.schemas.common import PaginatedResponse
 from app.utils.helpers import calculate_pagination
+from app.config.database import database
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +28,15 @@ async def get_projects(
 ):
     """Get list of published projects with pagination and filtering"""
     try:
-        # Build query
+        # Check if database is available
+        if database.database is None:
+            logger.error("Database not initialized - MongoDB connection required")
+            raise HTTPException(
+                status_code=503, 
+                detail="Database not available. Please ensure MongoDB is running and properly configured."
+            )
+        
+        # Use database if available
         query_filter = {"status": "published"}
         
         if category:
@@ -122,7 +131,15 @@ async def get_featured_projects(limit: int = Query(6, ge=1, le=20)):
 async def get_project_categories():
     """Get all unique project categories"""
     try:
-        # Get distinct categories from published projects
+        # Check if database is available
+        if database.database is None:
+            logger.error("Database not initialized - MongoDB connection required")
+            raise HTTPException(
+                status_code=503, 
+                detail="Database not available. Please ensure MongoDB is running and properly configured."
+            )
+        
+        # Use database if available
         categories = await Project.distinct("category", {"status": "published"})
         
         # Get category counts

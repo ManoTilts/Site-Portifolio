@@ -11,7 +11,7 @@ const badgeVariants = cva(
         secondary: "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
         destructive: "border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/90",
         outline: "text-foreground border-border hover:bg-accent hover:text-accent-foreground",
-        gradient: "border-transparent bg-gradient-to-r from-primary to-purple-500 text-white shadow-md hover:shadow-lg",
+        gradient: "border-transparent bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md hover:shadow-lg",
         glow: "border-transparent bg-primary text-primary-foreground shadow-glow animate-pulse-glow",
         pulse: "border-transparent bg-primary text-primary-foreground animate-bounce-subtle",
       },

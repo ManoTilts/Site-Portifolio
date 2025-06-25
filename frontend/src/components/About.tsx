@@ -1,4 +1,3 @@
-import React from 'react'
 import { motion } from 'framer-motion'
 import { Code2, Palette, Rocket, Users, Coffee, Award, Sparkles, Zap } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/Card'
@@ -83,7 +82,7 @@ const About = () => {
               About <span className="text-gradient">Me</span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-              Passionate developer with a love for creating beautiful, functional, and user-friendly applications that make a difference.
+              Computer Science student passionate about game development and full-stack solutions that create meaningful experiences.
             </p>
           </motion.div>
 
@@ -92,7 +91,7 @@ const About = () => {
             <motion.div variants={itemVariants} className="space-y-8">
               <div className="space-y-6">
                 <h3 className="text-3xl font-bold text-foreground flex items-center">
-                  Hello! I'm a passionate developer
+                  Hello, I'm Felipe Mazzeo Barbosa [ManoTilts]
                   <motion.div
                     animate={{ rotate: [0, 14, -8, 14, -4, 10, 0] }}
                     transition={{ duration: 2, repeat: Infinity, delay: 1 }}
@@ -102,15 +101,13 @@ const About = () => {
                   </motion.div>
                 </h3>
                 <p className="text-muted-foreground leading-relaxed text-lg">
-                  I'm a full-stack developer with 3+ years of experience creating digital experiences 
-                  that are not only functional but also engaging. My journey started with a curiosity 
-                  about how things work on the web, and it has evolved into a passion for creating 
-                  solutions that make a difference.
+                  I'm a passionate Computer Science student set to graduate in December 2025, actively seeking opportunities to launch my career in software development. While my heart lies in game development—where creativity meets code to build immersive experiences—I'm currently expanding my expertise in full-stack development to become a well-rounded developer.
                 </p>
                 <p className="text-muted-foreground leading-relaxed text-lg">
-                  When I'm not coding, you can find me exploring new technologies, contributing to 
-                  open-source projects, or sharing knowledge with the developer community. I believe 
-                  in writing clean, maintainable code and creating user experiences that delight.
+                  My journey in programming has been driven by curiosity and a genuine love for problem-solving. Whether I'm crafting interactive gameplay mechanics or building responsive web applications, I approach each project with enthusiasm and attention to detail. I believe that the analytical thinking and creative problem-solving skills from game development translate beautifully into creating robust, user-focused full-stack solutions.
+                </p>
+                <p className="text-muted-foreground leading-relaxed text-lg">
+                  Currently, I'm honing my skills across the development spectrum—from front-end frameworks and user experience design to back-end architecture and database management. This diverse skill set, combined with my passion for interactive media, positions me to contribute meaningfully to any development team. I'm excited to connect with companies and teams who value innovation, creativity, and collaborative problem-solving. Let's build something amazing together.
                 </p>
               </div>
 

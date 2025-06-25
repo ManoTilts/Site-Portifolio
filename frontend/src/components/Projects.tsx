@@ -7,57 +7,6 @@ import { Badge } from './ui/Badge'
 import { projectsApi, type Project } from '../lib/api'
 import { useInView } from 'react-intersection-observer'
 
-// Mock projects for fallback
-const mockProjects: Project[] = [
-  {
-    id: 1,
-    title: "E-Commerce Platform",
-    description: "A modern e-commerce platform built with React and Node.js featuring real-time inventory, payment processing, and admin dashboard.",
-    short_description: "Modern e-commerce platform with real-time features",
-    thumbnail: "/api/placeholder/400/250",
-    technologies: ["React", "Node.js", "PostgreSQL", "Stripe", "Redis"],
-    category: "Web Development",
-    status: "completed",
-    featured: true,
-    links: {
-      live: "https://example.com",
-      github: "https://github.com/example"
-    },
-    created_at: "2024-01-15T00:00:00Z"
-  },
-  {
-    id: 2,
-    title: "Task Management App",
-    description: "Collaborative task management application with real-time updates, file sharing, and team communication features.",
-    short_description: "Collaborative task management with real-time sync",
-    thumbnail: "/api/placeholder/400/250",
-    technologies: ["React Native", "TypeScript", "Firebase", "Redux"],
-    category: "Mobile App",
-    status: "completed",
-    featured: true,
-    links: {
-      live: "https://example.com",
-      github: "https://github.com/example"
-    },
-    created_at: "2024-02-01T00:00:00Z"
-  },
-  {
-    id: 3,
-    title: "Analytics Dashboard",
-    description: "Beautiful analytics dashboard with interactive charts, real-time data visualization, and customizable widgets.",
-    short_description: "Interactive analytics dashboard with real-time data",
-    thumbnail: "/api/placeholder/400/250",
-    technologies: ["Vue.js", "D3.js", "Python", "FastAPI", "PostgreSQL"],
-    category: "Web Development",
-    status: "completed",
-    featured: false,
-    links: {
-      live: "https://example.com",
-      github: "https://github.com/example"
-    },
-    created_at: "2024-03-10T00:00:00Z"
-  }
-]
 
 const Projects = () => {
   const [projects, setProjects] = useState<Project[]>([])
@@ -81,9 +30,9 @@ const Projects = () => {
         setCategories(['all', ...categoriesResponse.data.categories.map(c => c.name)])
       } catch (error) {
         console.error('Error fetching projects:', error)
-        // Fallback to mock data
-        setProjects(mockProjects)
-        setCategories(['all', 'Web Development', 'Mobile App', 'UI/UX Design'])
+        // No fallback - show database connection error
+        setProjects([])
+        setCategories(['all'])
       } finally {
         setLoading(false)
       }
@@ -317,16 +266,19 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, variants, index }) =
             </div>
           </motion.div>
 
-          {/* Status indicator */}
-          <div className="absolute top-4 right-4">
-            <Badge 
-              variant={project.status === 'completed' ? 'default' : 'outline'} 
-              size="sm"
-              className="backdrop-blur-sm"
-            >
-              {project.status === 'completed' ? '✓ Completed' : '🚧 In Progress'}
-            </Badge>
-          </div>
+          {/* Featured indicator */}
+          {project.featured && (
+            <div className="absolute top-4 right-4">
+              <Badge 
+                variant="gradient" 
+                size="sm"
+                className="backdrop-blur-sm"
+              >
+                <Star className="w-3 h-3 mr-1" />
+                Featured
+              </Badge>
+            </div>
+          )}
         </div>
         
         <CardHeader className="pb-3">
@@ -334,10 +286,10 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, variants, index }) =
             <CardTitle className="text-xl group-hover:text-primary transition-colors duration-300">
               {project.title}
             </CardTitle>
-            {project.created_at && (
+            {project.date_created && (
               <div className="flex items-center text-muted-foreground text-xs">
                 <Calendar className="w-3 h-3 mr-1" />
-                {new Date(project.created_at).getFullYear()}
+                {new Date(project.date_created).getFullYear()}
               </div>
             )}
           </div>

@@ -46,7 +46,7 @@ const Footer = () => {
               >
                 <div className="flex items-center space-x-3 mb-4">
                   <div className="p-2 rounded-xl bg-gradient-to-r from-primary to-purple-500 text-white">
-                    <Code2 size={24} />
+                    <Code2 size={24} strokeWidth={1.5} />
                   </div>
                   <h3 className="text-2xl font-bold text-gradient">Portfolio</h3>
                 </div>
@@ -163,7 +163,7 @@ const Footer = () => {
                       transition={{ duration: 0.3, delay: index * 0.1 }}
                       viewport={{ once: true }}
                     >
-                      <social.icon size={18} className="group-hover:scale-110 transition-transform" />
+                      <social.icon size={18} strokeWidth={1.5} className="group-hover:scale-110 transition-transform" />
                       <span className="text-xs font-medium">{social.label}</span>
                     </motion.a>
                   ))}

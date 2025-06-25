@@ -1,10 +1,19 @@
-import React from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { ChevronDown, Download, Eye, ArrowRight, Sparkles } from 'lucide-react'
 import { Button } from './ui/Button'
 import { Badge } from './ui/Badge'
+import { useTheme } from '../contexts/ThemeContext'
+
+const names = ['ManoTilts', 'Felipe Barbosa']
 
 const Hero = () => {
+  const { currentTheme } = useTheme()
+  const [displayedName, setDisplayedName] = useState('')
+  const [isTyping, setIsTyping] = useState(true)
+  const [currentNameIndex, setCurrentNameIndex] = useState(0)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   const fadeInUp = {
     initial: { opacity: 0, y: 60 },
     animate: { opacity: 1, y: 0 },
@@ -31,6 +40,80 @@ const Hero = () => {
     }
   }
 
+  // Memoize the floating orbs configuration to prevent re-renders
+  const floatingOrbs = useMemo(() => {
+    return [...Array(8)].map((_, i) => ({
+      id: i,
+      width: Math.random() * 300 + 100,
+      height: Math.random() * 300 + 100,
+      left: Math.random() * 100,
+      top: Math.random() * 100,
+      duration: 20 + Math.random() * 10,
+      className: i % 3 === 0 ? 'bg-primary/10' : 
+                  i % 3 === 1 ? 'bg-purple-500/10' : 'bg-pink-500/10'
+    }))
+  }, [])
+
+  // Typewriter effect for default theme only
+  const typewriterEffect = useCallback(() => {
+    if (currentTheme !== 'default') return
+
+    const currentName = names[currentNameIndex]
+    
+    if (isTyping) {
+      // Typing phase
+      if (displayedName.length < currentName.length) {
+        timeoutRef.current = setTimeout(() => {
+          setDisplayedName(prev => currentName.slice(0, prev.length + 1))
+        }, 100)
+      } else {
+        // Finished typing, wait then start erasing
+        timeoutRef.current = setTimeout(() => {
+          setIsTyping(false)
+        }, 2000)
+      }
+    } else {
+      // Erasing phase
+      if (displayedName.length > 0) {
+        timeoutRef.current = setTimeout(() => {
+          setDisplayedName(prev => prev.slice(0, -1))
+        }, 50)
+      } else {
+        // Finished erasing, move to next name
+        setCurrentNameIndex((prev) => (prev + 1) % names.length)
+        setIsTyping(true)
+      }
+    }
+  }, [currentTheme, currentNameIndex, isTyping, displayedName])
+
+  useEffect(() => {
+    if (currentTheme !== 'default') {
+      setDisplayedName('Felipe')
+      return
+    }
+
+    const timeout = setTimeout(typewriterEffect, 100)
+    
+    return () => {
+      clearTimeout(timeout)
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+        timeoutRef.current = null
+      }
+    }
+  }, [currentTheme, typewriterEffect])
+
+  // Initialize the name display
+  useEffect(() => {
+    if (currentTheme === 'default') {
+      setDisplayedName('')
+      setCurrentNameIndex(0)
+      setIsTyping(true)
+    } else {
+      setDisplayedName('Felipe')
+    }
+  }, [currentTheme])
+
   return (
     <section id="home" className="min-h-screen flex items-center justify-center relative overflow-hidden">
       {/* Enhanced background with grid pattern */}
@@ -41,18 +124,15 @@ const Hero = () => {
       
       {/* Animated floating orbs */}
       <div className="absolute inset-0 overflow-hidden">
-        {[...Array(8)].map((_, i) => (
+        {floatingOrbs.map((orb) => (
           <motion.div
-            key={i}
-            className={`absolute rounded-full blur-3xl ${
-              i % 3 === 0 ? 'bg-primary/10' : 
-              i % 3 === 1 ? 'bg-purple-500/10' : 'bg-pink-500/10'
-            }`}
+            key={orb.id}
+            className={`absolute rounded-full blur-3xl ${orb.className}`}
             style={{
-              width: `${Math.random() * 300 + 100}px`,
-              height: `${Math.random() * 300 + 100}px`,
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
+              width: `${orb.width}px`,
+              height: `${orb.height}px`,
+              left: `${orb.left}%`,
+              top: `${orb.top}%`,
             }}
             animate={{
               x: [0, 100, -50, 0],
@@ -61,7 +141,7 @@ const Hero = () => {
               opacity: [0.3, 0.6, 0.3, 0.3],
             }}
             transition={{
-              duration: 20 + Math.random() * 10,
+              duration: orb.duration,
               repeat: Infinity,
               ease: "linear",
             }}
@@ -82,7 +162,7 @@ const Hero = () => {
             className="mb-8"
           >
             <Badge variant="gradient" size="lg" className="mb-4 animate-float">
-              <Sparkles className="w-4 h-4 mr-2" />
+              <Sparkles className="w-4 h-4 mr-2" strokeWidth={1.5} />
               Welcome to my portfolio
             </Badge>
           </motion.div>
@@ -93,8 +173,15 @@ const Hero = () => {
             className="text-5xl sm:text-7xl lg:text-8xl font-bold mb-6 leading-tight"
           >
             Hi, I'm{' '}
-            <span className="text-gradient animate-gradient bg-[length:200%_auto]">
-              Your Name
+            <span className="text-gradient animate-gradient bg-[length:300%_300%] relative">
+              {displayedName}
+              {currentTheme === 'default' && (
+                <motion.span
+                  className="inline-block w-1 h-[0.8em] bg-primary ml-1"
+                  animate={{ opacity: [1, 0, 1] }}
+                  transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }}
+                />
+              )}
             </span>
           </motion.h1>
 
@@ -103,17 +190,18 @@ const Hero = () => {
             variants={fadeInUp}
             className="text-xl sm:text-2xl lg:text-3xl text-muted-foreground mb-8 max-w-4xl mx-auto font-medium"
           >
-            Full Stack Developer & UI/UX Designer creating{' '}
-            <span className="text-foreground font-semibold">digital experiences</span> that matter
+            Computer Science Student & Aspiring{' '}
+            <span className="text-foreground font-semibold">Game Developer</span> expanding into Full Stack
           </motion.h2>
 
           {/* Description */}
           <motion.p
             variants={fadeInUp}
-            className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto leading-relaxed"
+            className="text-lg text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed"
           >
-            I craft beautiful, functional, and user-centered digital experiences. 
-            Currently focused on building accessible web applications with modern technologies.
+            Passionate about building immersive experiences through game development while expanding 
+            my expertise in full-stack solutions. Set to graduate December 2025 and ready to bring 
+            creativity and problem-solving skills to any development team.
           </motion.p>
 
           {/* Enhanced CTA buttons */}
@@ -122,12 +210,12 @@ const Hero = () => {
             className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16"
           >
             <Button size="lg" variant="gradient" className="group min-w-[180px]">
-              <Eye className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
+              <Eye className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
               View My Work
-              <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" strokeWidth={1.5} />
             </Button>
             <Button variant="outline" size="lg" className="group min-w-[180px]">
-              <Download className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
+              <Download className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
               Download CV
             </Button>
           </motion.div>
@@ -138,7 +226,7 @@ const Hero = () => {
             animate="animate"
             className="flex justify-center space-x-8 mb-20"
           >
-            {['React', 'TypeScript', 'Node.js', 'Python'].map((tech, index) => (
+            {['React', 'TypeScript', 'Python', 'C#'].map((tech, index) => (
               <motion.div
                 key={tech}
                 className="hidden sm:block"
@@ -172,7 +260,7 @@ const Hero = () => {
             >
               <span className="text-sm mb-3 font-medium">Scroll to explore</span>
               <div className="p-2 rounded-full border border-border group-hover:border-primary/40 transition-colors">
-                <ChevronDown className="h-5 w-5 group-hover:translate-y-1 transition-transform" />
+                <ChevronDown className="h-5 w-5 group-hover:translate-y-1 transition-transform" strokeWidth={1.5} />
               </div>
             </motion.a>
           </motion.div>

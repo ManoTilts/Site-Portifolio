@@ -57,7 +57,7 @@ class EmailService:
                 autoescape=True
             )
             
-            # Create default templates if they don't exist
+            # Verify email templates exist
             self._create_default_templates(email_templates_dir)
             
             logger.info("Email templates initialized")
@@ -66,122 +66,22 @@ class EmailService:
             logger.error(f"Failed to setup email templates: {e}")
     
     def _create_default_templates(self, templates_dir: Path):
-        """Create default email templates"""
+        """Ensure email templates exist"""
         
-        # Contact notification template
-        contact_template = """
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>New Contact Form Submission</title>
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
-        .content { background-color: #ffffff; padding: 20px; border: 1px solid #dee2e6; border-radius: 5px; }
-        .field { margin-bottom: 15px; }
-        .label { font-weight: bold; color: #495057; }
-        .value { margin-top: 5px; }
-        .message { background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-top: 10px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h2>New Contact Form Submission</h2>
-            <p>You have received a new message through your portfolio contact form.</p>
-        </div>
+        # List of required template files
+        required_templates = [
+            "contact_notification.html",
+            "contact_autoreply.html"
+        ]
         
-        <div class="content">
-            <div class="field">
-                <div class="label">Name:</div>
-                <div class="value">{{ contact.name }}</div>
-            </div>
-            
-            <div class="field">
-                <div class="label">Email:</div>
-                <div class="value">{{ contact.email }}</div>
-            </div>
-            
-            {% if contact.phone %}
-            <div class="field">
-                <div class="label">Phone:</div>
-                <div class="value">{{ contact.phone }}</div>
-            </div>
-            {% endif %}
-            
-            {% if contact.company %}
-            <div class="field">
-                <div class="label">Company:</div>
-                <div class="value">{{ contact.company }}</div>
-            </div>
-            {% endif %}
-            
-            <div class="field">
-                <div class="label">Subject:</div>
-                <div class="value">{{ contact.subject }}</div>
-            </div>
-            
-            <div class="field">
-                <div class="label">Message:</div>
-                <div class="message">{{ contact.message }}</div>
-            </div>
-            
-            <div class="field">
-                <div class="label">Submitted at:</div>
-                <div class="value">{{ timestamp }}</div>
-            </div>
-        </div>
-    </div>
-</body>
-</html>
-        """
+        # Check if all required templates exist
+        for template_file in required_templates:
+            template_path = templates_dir / template_file
+            if not template_path.exists():
+                logger.warning(f"Email template not found: {template_path}")
+                logger.info("Please ensure all email templates exist in app/templates/emails/")
         
-        # Auto-reply template
-        autoreply_template = """
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>Thank you for your message</title>
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #007bff; color: white; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
-        .content { background-color: #ffffff; padding: 20px; border: 1px solid #dee2e6; border-radius: 5px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h2>Thank you for reaching out!</h2>
-        </div>
-        
-        <div class="content">
-            <p>Hi {{ contact.name }},</p>
-            
-            <p>Thank you for your message. I have received your inquiry and will get back to you as soon as possible, usually within 24 hours.</p>
-            
-            <p><strong>Your message summary:</strong></p>
-            <p><strong>Subject:</strong> {{ contact.subject }}</p>
-            <p><strong>Message:</strong> {{ contact.message[:200] }}{% if contact.message|length > 200 %}...{% endif %}</p>
-            
-            <p>Best regards,<br>Portfolio Team</p>
-        </div>
-    </div>
-</body>
-</html>
-        """
-        
-        # Write templates to files
-        contact_file = templates_dir / "emails" / "contact_notification.html"
-        if not contact_file.exists():
-            contact_file.write_text(contact_template)
-        
-        autoreply_file = templates_dir / "emails" / "contact_autoreply.html"
-        if not autoreply_file.exists():
-            autoreply_file.write_text(autoreply_template)
+        logger.info("Email template check completed")
     
     async def send_email_async(self, to_email: str, subject: str, html_content: str, 
                               text_content: str = None, from_email: str = None) -> bool:

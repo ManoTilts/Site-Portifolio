@@ -7,13 +7,13 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-xl hover:shadow-primary/25 hover:-translate-y-0.5 before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/0 before:via-white/10 before:to-white/0 before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-xl hover:shadow-primary/25 hover:-translate-y-0.5 before:absolute before:inset-0 before:bg-gradient-to-r before:from-primary/0 before:via-primary/40 before:to-primary/0 hover:before:translate-x-[100%] before:transition-transform before:duration-500 before:translate-x-[-100%]",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-lg hover:shadow-destructive/25",
         outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10",
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border hover:border-primary/20 hover:shadow-lg",
         ghost: "hover:bg-accent hover:text-accent-foreground hover:shadow-md",
         link: "text-primary underline-offset-4 hover:underline",
-        gradient: "bg-gradient-to-r from-primary via-purple-500 to-pink-500 text-white hover:shadow-xl hover:shadow-primary/25 hover:-translate-y-0.5 animate-gradient",
+        gradient: "bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-600 text-white hover:shadow-xl hover:shadow-primary/25 hover:-translate-y-0.5 animate-gradient bg-[length:300%_300%] relative before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/30 before:to-transparent hover:before:translate-x-[150%] before:transition-transform before:duration-800 before:translate-x-[-150%] before:skew-x-12",
         glow: "bg-primary text-primary-foreground shadow-glow hover:shadow-glow-lg hover:-translate-y-0.5 animate-pulse-glow",
       },
       size: {
@@ -47,7 +47,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       >
         {children}
         {variant === 'default' && (
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/30 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500 skew-x-12" />
         )}
       </button>
     )

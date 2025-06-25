@@ -60,7 +60,8 @@ export default {
         "float": "float 3s ease-in-out infinite",
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
         "shimmer": "shimmer 2s ease-in-out infinite",
-        "gradient": "gradient 6s ease infinite",
+        "gradient": "gradient 4s ease-in-out infinite",
+        "wave-gradient": "wave-gradient 8s ease-in-out infinite",
         "spin-slow": "spin 3s linear infinite",
         "bounce-subtle": "bounce-subtle 2s ease-in-out infinite",
       },
@@ -116,13 +117,25 @@ export default {
           "100%": { transform: "translateX(100%)" },
         },
         "gradient": {
-          "0%, 100%": { 
-            backgroundSize: "200% 200%",
-            backgroundPosition: "left center"
+          "0%": { 
+            backgroundSize: "300% 300%",
+            backgroundPosition: "0% 50%"
+          },
+          "25%": {
+            backgroundSize: "300% 300%", 
+            backgroundPosition: "100% 0%"
           },
           "50%": {
-            backgroundSize: "200% 200%", 
-            backgroundPosition: "right center"
+            backgroundSize: "300% 300%", 
+            backgroundPosition: "100% 100%"
+          },
+          "75%": {
+            backgroundSize: "300% 300%", 
+            backgroundPosition: "0% 100%"
+          },
+          "100%": {
+            backgroundSize: "300% 300%", 
+            backgroundPosition: "0% 50%"
           },
         },
         "bounce-subtle": {

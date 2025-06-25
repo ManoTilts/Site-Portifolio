@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, Github, Linkedin, Mail, Code2 } from 'lucide-react'
+import { Menu, X, Github, Linkedin, Mail, Code2, Palette, Terminal, Zap, Settings } from 'lucide-react'
 import { Button } from './ui/Button'
+import { Dropdown } from './ui/Dropdown'
+import { useTheme } from '../contexts/ThemeContext'
 import { cn } from '../lib/utils'
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { currentTheme, setTheme } = useTheme()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -28,6 +31,29 @@ const Header = () => {
     { icon: Github, href: '#', label: 'GitHub' },
     { icon: Linkedin, href: '#', label: 'LinkedIn' },
     { icon: Mail, href: '#contact', label: 'Email' },
+  ]
+
+  const themeOptions = [
+    { 
+      value: 'default', 
+      label: 'Default', 
+      icon: <Settings size={16} className="text-primary" />
+    },
+    { 
+      value: 'angler', 
+      label: 'Angler', 
+      icon: <Zap size={16} className="text-blue-400" />
+    },
+    { 
+      value: 'magic', 
+      label: 'Magic', 
+      icon: <Palette size={16} className="text-purple-400" />
+    },
+    { 
+      value: 'cmd', 
+      label: 'Cmd', 
+      icon: <Terminal size={16} className="text-green-400" />
+    },
   ]
 
   return (
@@ -52,7 +78,7 @@ const Header = () => {
           >
             <a href="#home" className="flex items-center space-x-2 text-2xl font-bold">
               <div className="p-2 rounded-xl bg-gradient-to-r from-primary to-purple-500 text-white shadow-lg">
-                <Code2 size={20} />
+                <Code2 size={20} strokeWidth={1.5} />
               </div>
               <span className="text-gradient">Portfolio</span>
             </a>
@@ -81,23 +107,40 @@ const Header = () => {
             </div>
           </div>
 
-          {/* Social Links with enhanced animations */}
-          <div className="hidden md:flex items-center space-x-2">
-            {socialLinks.map((social, index) => (
-              <motion.a
-                key={index}
-                href={social.href}
-                aria-label={social.label}
-                className="text-foreground/60 hover:text-foreground p-2 rounded-lg transition-all duration-200 hover:bg-accent/50 hover:shadow-md"
-                whileHover={{ scale: 1.1, y: -2 }}
-                whileTap={{ scale: 0.9 }}
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 * index, duration: 0.3 }}
-              >
-                <social.icon size={18} />
-              </motion.a>
-            ))}
+          {/* Theme Dropdown and Social Links */}
+          <div className="hidden md:flex items-center space-x-4">
+            {/* Theme Selector */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Dropdown
+                options={themeOptions}
+                value={currentTheme}
+                                     onChange={(theme) => setTheme(theme as 'default' | 'angler' | 'magic' | 'cmd')}
+                className="min-w-[130px]"
+              />
+            </motion.div>
+
+            {/* Social Links */}
+            <div className="flex items-center space-x-2">
+              {socialLinks.map((social, index) => (
+                <motion.a
+                  key={index}
+                  href={social.href}
+                  aria-label={social.label}
+                  className="text-foreground/60 hover:text-foreground p-2 rounded-lg transition-all duration-200 hover:bg-accent/50 hover:shadow-md"
+                  whileHover={{ scale: 1.1, y: -2 }}
+                  whileTap={{ scale: 0.9 }}
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 * index, duration: 0.3 }}
+                >
+                  <social.icon size={18} strokeWidth={1.5} />
+                </motion.a>
+              ))}
+            </div>
           </div>
 
           {/* Mobile menu button with enhanced styling */}
@@ -118,7 +161,7 @@ const Header = () => {
                     exit={{ rotate: 90, scale: 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <X size={24} />
+                    <X size={24} strokeWidth={1.5} />
                   </motion.div>
                 ) : (
                   <motion.div
@@ -128,7 +171,7 @@ const Header = () => {
                     exit={{ rotate: 90, scale: 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <Menu size={24} />
+                    <Menu size={24} strokeWidth={1.5} />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -161,6 +204,23 @@ const Header = () => {
                     {item.name}
                   </motion.a>
                 ))}
+                
+                {/* Mobile Theme Selector */}
+                <motion.div
+                  className="px-4 py-3 border-t border-border/30 mt-4"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3, duration: 0.3 }}
+                >
+                  <p className="text-sm text-muted-foreground mb-3 font-medium">Theme</p>
+                  <Dropdown
+                    options={themeOptions}
+                    value={currentTheme}
+                    onChange={(theme) => setTheme(theme as 'default' | 'angler' | 'magic' | 'cmd')}
+                    className="w-full"
+                  />
+                </motion.div>
+
                 <motion.div 
                   className="flex items-center justify-center space-x-4 px-4 py-4 border-t border-border/30 mt-4"
                   initial={{ opacity: 0 }}
@@ -176,7 +236,7 @@ const Header = () => {
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                     >
-                      <social.icon size={20} />
+                      <social.icon size={20} strokeWidth={1.5} />
                     </motion.a>
                   ))}
                 </motion.div>

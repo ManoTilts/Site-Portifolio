@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from beanie import Document, Indexed
+from beanie import Document
 from pydantic import Field, EmailStr
 from pymongo import IndexModel
 
@@ -14,8 +14,8 @@ class Contact(Document):
     message: str = Field(..., min_length=1, max_length=2000)
     phone: Optional[str] = Field(None, max_length=20)
     company: Optional[str] = Field(None, max_length=100)
-    date_submitted: Indexed(datetime) = Field(default_factory=datetime.utcnow)
-    read_status: Indexed(bool) = Field(default=False)
+    date_submitted: datetime = Field(default_factory=datetime.utcnow)
+    read_status: bool = Field(default=False)
     ip_address: Optional[str] = None
     user_agent: Optional[str] = None
     replied: bool = Field(default=False)
