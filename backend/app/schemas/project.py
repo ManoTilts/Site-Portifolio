@@ -16,6 +16,7 @@ class ProjectCreateSchema(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
     description: str = Field(..., min_length=1, max_length=2000)
     short_description: Optional[str] = Field(None, max_length=300)
+    long_description: Optional[str] = Field(None, max_length=5000)
     technologies: List[str] = Field(default_factory=list)
     images: List[str] = Field(default_factory=list)
     thumbnail: Optional[str] = None
@@ -25,6 +26,12 @@ class ProjectCreateSchema(BaseModel):
     order: Optional[int] = Field(default=0)
     status: str = Field(default="published")
     slug: Optional[str] = None
+    challenges: Optional[List[str]] = Field(default_factory=list)
+    solutions: Optional[List[str]] = Field(default_factory=list)
+    highlights: Optional[List[str]] = Field(default_factory=list)
+    duration: Optional[str] = Field(None, max_length=100)
+    team_size: Optional[int] = Field(None, ge=1)
+    role: Optional[str] = Field(None, max_length=100)
     metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
     
     @validator('slug')
@@ -46,7 +53,7 @@ class ProjectCreateSchema(BaseModel):
     
     @validator('status')
     def validate_status(cls, v):
-        allowed_statuses = ['published', 'draft', 'archived']
+        allowed_statuses = ['published', 'draft', 'archived', 'in-progress']
         if v not in allowed_statuses:
             raise ValueError(f'Status must be one of: {", ".join(allowed_statuses)}')
         return v
@@ -57,6 +64,7 @@ class ProjectUpdateSchema(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=200)
     description: Optional[str] = Field(None, min_length=1, max_length=2000)
     short_description: Optional[str] = Field(None, max_length=300)
+    long_description: Optional[str] = Field(None, max_length=5000)
     technologies: Optional[List[str]] = None
     images: Optional[List[str]] = None
     thumbnail: Optional[str] = None
@@ -66,6 +74,12 @@ class ProjectUpdateSchema(BaseModel):
     order: Optional[int] = None
     status: Optional[str] = None
     slug: Optional[str] = None
+    challenges: Optional[List[str]] = None
+    solutions: Optional[List[str]] = None
+    highlights: Optional[List[str]] = None
+    duration: Optional[str] = Field(None, max_length=100)
+    team_size: Optional[int] = Field(None, ge=1)
+    role: Optional[str] = Field(None, max_length=100)
     metadata: Optional[Dict[str, Any]] = None
     
     @validator('slug')
@@ -83,7 +97,7 @@ class ProjectUpdateSchema(BaseModel):
     @validator('status')
     def validate_status(cls, v):
         if v is not None:
-            allowed_statuses = ['published', 'draft', 'archived']
+            allowed_statuses = ['published', 'draft', 'archived', 'in-progress']
             if v not in allowed_statuses:
                 raise ValueError(f'Status must be one of: {", ".join(allowed_statuses)}')
         return v
@@ -94,41 +108,46 @@ class ProjectResponseSchema(BaseModel):
     id: str
     title: str
     description: str
-    short_description: Optional[str]
+    short_description: Optional[str] = None
+    long_description: Optional[str] = None
     technologies: List[str]
     images: List[str]
-    thumbnail: Optional[str]
-    links: Optional[ProjectLinksSchema]
+    thumbnail: Optional[str] = None
+    links: Optional[ProjectLinksSchema] = None
     category: str
     featured: bool
     order: int
     status: str
-    slug: Optional[str]
-    metadata: Optional[Dict[str, Any]]
+    slug: Optional[str] = None
+    challenges: Optional[List[str]] = None
+    solutions: Optional[List[str]] = None
+    highlights: Optional[List[str]] = None
+    duration: Optional[str] = None
+    team_size: Optional[int] = None
+    role: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
     date_created: datetime
     date_updated: datetime
     main_image: Optional[str] = None
     
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 class ProjectListSchema(BaseModel):
     """Schema for project list response"""
     id: str
     title: str
-    short_description: Optional[str]
+    short_description: Optional[str] = None
     technologies: List[str]
-    thumbnail: Optional[str]
+    thumbnail: Optional[str] = None
     category: str
     featured: bool
     status: str
-    slug: Optional[str]
+    slug: Optional[str] = None
     date_created: datetime
     main_image: Optional[str] = None
     
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 class ProjectFilterSchema(BaseModel):

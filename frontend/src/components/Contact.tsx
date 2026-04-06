@@ -6,8 +6,10 @@ import { Button } from './ui/Button'
 import { Badge } from './ui/Badge'
 import { contactApi, type ContactForm } from '../lib/api'
 import { useInView } from 'react-intersection-observer'
+import { useLanguage } from '../contexts/LanguageContext'
 
 const Contact = () => {
+  const { t } = useLanguage()
   const [formData, setFormData] = useState<ContactForm>({
     name: '',
     email: '',
@@ -46,22 +48,22 @@ const Contact = () => {
   const contactInfo = [
     {
       icon: Mail,
-      label: 'Email',
-      value: 'hello@yourname.com',
-      href: 'mailto:hello@yourname.com',
+      label: t('contact.emailLabel'),
+      value: t('contact.emailValue'),
+      href: 'mailto:felipe.mazzeo.barbosa@outlook.com',
       color: 'text-blue-400'
     },
     {
       icon: Phone,
-      label: 'Phone',
-      value: '+1 (555) 123-4567',
-      href: 'tel:+15551234567',
+      label: t('contact.phoneLabel'),
+      value: t('contact.phoneValue'),
+      href: 'tel:+5511991701334',
       color: 'text-green-400'
     },
     {
       icon: MapPin,
-      label: 'Location',
-      value: 'San Francisco, CA',
+      label: t('contact.locationLabel'),
+      value: t('contact.locationValue'),
       href: 'https://maps.google.com',
       color: 'text-purple-400'
     }
@@ -112,10 +114,10 @@ const Contact = () => {
               <MessageSquare className="w-6 h-6 text-primary animate-pulse" />
             </div>
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6">
-              Let's Work <span className="text-gradient">Together</span>
+              {t('contact.workTogether')}
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-              Have a project in mind? I'd love to hear about it. Send me a message and let's discuss how we can bring your ideas to life.
+              {t('contact.subtitle')}
             </p>
           </motion.div>
 
@@ -123,7 +125,7 @@ const Contact = () => {
             {/* Contact Info Cards */}
             <motion.div variants={itemVariants} className="lg:col-span-1 space-y-6">
               <div className="space-y-4">
-                <h3 className="text-2xl font-bold text-foreground mb-6">Get in Touch</h3>
+                <h3 className="text-2xl font-bold text-foreground mb-6">{t('contact.getInTouch')}</h3>
                 {contactInfo.map((info, index) => (
                   <motion.a
                     key={index}
@@ -151,23 +153,23 @@ const Contact = () => {
 
               {/* Quick Stats */}
               <motion.div variants={itemVariants} className="space-y-4">
-                <h4 className="text-lg font-semibold text-foreground">Why Work With Me?</h4>
+                <h4 className="text-lg font-semibold text-foreground">{t('contact.whyWorkWithMe')}</h4>
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3">
                     <Badge variant="outline" size="sm">⚡</Badge>
-                    <span className="text-sm text-muted-foreground">Fast Response Time</span>
+                    <span className="text-sm text-muted-foreground">{t('contact.fastResponse')}</span>
                   </div>
                   <div className="flex items-center space-x-3">
                     <Badge variant="outline" size="sm">🎯</Badge>
-                    <span className="text-sm text-muted-foreground">Goal-Oriented Approach</span>
+                    <span className="text-sm text-muted-foreground">{t('contact.goalOriented')}</span>
                   </div>
                   <div className="flex items-center space-x-3">
                     <Badge variant="outline" size="sm">🔄</Badge>
-                    <span className="text-sm text-muted-foreground">Iterative Process</span>
+                    <span className="text-sm text-muted-foreground">{t('contact.iterativeProcess')}</span>
                   </div>
                   <div className="flex items-center space-x-3">
                     <Badge variant="outline" size="sm">✨</Badge>
-                    <span className="text-sm text-muted-foreground">Attention to Detail</span>
+                    <span className="text-sm text-muted-foreground">{t('contact.attentionToDetail')}</span>
                   </div>
                 </div>
               </motion.div>
@@ -179,10 +181,10 @@ const Contact = () => {
                 <CardHeader className="pb-6">
                   <CardTitle className="text-2xl flex items-center">
                     <Sparkles className="w-6 h-6 mr-3 text-primary" />
-                    Send me a message
+                    {t('contact.sendMessage')}
                   </CardTitle>
                   <CardDescription className="text-base">
-                    Fill out the form below and I'll get back to you within 24 hours.
+                    {t('contact.formDescription')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -190,7 +192,7 @@ const Contact = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <label htmlFor="name" className="block text-sm font-medium text-foreground">
-                          Name *
+                          {t('contact.name')} *
                         </label>
                         <input
                           type="text"
@@ -205,7 +207,7 @@ const Contact = () => {
                       </div>
                       <div className="space-y-2">
                         <label htmlFor="email" className="block text-sm font-medium text-foreground">
-                          Email *
+                          {t('contact.email')} *
                         </label>
                         <input
                           type="email"
@@ -222,7 +224,7 @@ const Contact = () => {
                     
                     <div className="space-y-2">
                       <label htmlFor="subject" className="block text-sm font-medium text-foreground">
-                        Subject *
+                        {t('contact.subject')} *
                       </label>
                       <input
                         type="text"
@@ -238,7 +240,7 @@ const Contact = () => {
                     
                     <div className="space-y-2">
                       <label htmlFor="message" className="block text-sm font-medium text-foreground">
-                        Message *
+                        {t('contact.message')} *
                       </label>
                       <textarea
                         id="message"
@@ -248,7 +250,7 @@ const Contact = () => {
                         required
                         rows={6}
                         className="w-full px-4 py-3 border border-input rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all duration-200 hover:border-primary/40"
-                        placeholder="Tell me about your project, goals, timeline, and any specific requirements..."
+                        placeholder="Tell me what's on your mind - job opportunities, collaboration ideas, questions about my work, or just to connect..."
                       />
                     </div>
 
@@ -292,7 +294,7 @@ const Contact = () => {
                       ) : (
                         <Send className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                       )}
-                      {isSubmitting ? 'Sending...' : 'Send Message'}
+                      {isSubmitting ? t('contact.sending') : t('contact.send')}
                     </Button>
                   </form>
                 </CardContent>

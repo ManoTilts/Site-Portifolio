@@ -10,7 +10,7 @@ from app.config.settings import settings
 from app.config.database import init_database
 from app.middleware.error_handler import ErrorHandlerMiddleware
 from app.middleware.rate_limiter import RateLimiterMiddleware
-from app.routes import projects, contact, admin, upload, health
+from app.routes import projects, contact, admin, upload, health, cv
 from app.utils.logger import setup_logging
 
 
@@ -19,26 +19,22 @@ async def lifespan(app: FastAPI):
     """Handle startup and shutdown events"""
     # Startup
     setup_logging()
-    logger = logging.getLogger(__name__)
-    logger.info("Starting portfolio backend application...")
     
     # Initialize database (required for production)
     try:
         await init_database()
-        logger.info("Database initialized successfully")
     except Exception as e:
-        logger.warning(f"Database initialization failed: {e}")
+        logger = logging.getLogger(__name__)
+        logger.error(f"Database initialization failed: {e}")
+        raise
     
     # Create upload directory if it doesn't exist
     os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
     os.makedirs("logs", exist_ok=True)
     
-    logger.info("Application startup complete")
-    
     yield
     
     # Shutdown
-    logger.info("Shutting down application...")
 
 
 app = FastAPI(
@@ -72,6 +68,7 @@ app.include_router(projects.router, prefix="/api", tags=["projects"])
 app.include_router(contact.router, prefix="/api", tags=["contact"])
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 app.include_router(upload.router, prefix="/api/admin", tags=["upload"])
+app.include_router(cv.router, prefix="/api", tags=["cv"])
 
 
 @app.get("/")
@@ -91,5 +88,8 @@ if __name__ == "__main__":
         "main:app",
         host="0.0.0.0",
         port=8000,
-        reload=settings.ENVIRONMENT == "development"
+        reload=settings.ENVIRONMENT == "development",
+        reload_dirs=["app"] if settings.ENVIRONMENT == "development" else None,
+        use_colors=True,
+        log_level="info"
     ) 

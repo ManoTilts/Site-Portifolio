@@ -24,6 +24,7 @@ export interface Project {
   title: string
   description: string
   short_description?: string
+  long_description?: string
   technologies: string[]
   images: string[]
   thumbnail?: string
@@ -34,6 +35,12 @@ export interface Project {
   }
   category: string
   featured: boolean
+  challenges?: string[]
+  solutions?: string[]
+  highlights?: string[]
+  duration?: string
+  team_size?: number
+  role?: string
   date_created: string
   date_updated: string
 }
@@ -80,4 +87,49 @@ export const projectsApi = {
 // Contact API
 export const contactApi = {
   send: (data: ContactForm) => api.post('/contact', data),
+}
+
+// CV API
+export const cvApi = {
+  getInfo: (language?: 'en' | 'pt') => api.get<{
+    available: boolean
+    filename?: string
+    size?: number
+    size_mb?: number
+    last_modified?: number
+    download_url?: string
+    view_url?: string
+    message?: string
+    language?: string
+    language_name?: string
+  }>('/cv/info', { 
+    params: language ? { language } : undefined 
+  }),
+  
+  download: (language: 'en' | 'pt' = 'en') => {
+    window.open(`${API_BASE_URL}/cv/download?language=${language}`, '_blank')
+  },
+  
+  view: (language: 'en' | 'pt' = 'en') => {
+    window.open(`${API_BASE_URL}/cv/view?language=${language}`, '_blank')
+  },
+  
+  upload: (file: File, language: 'en' | 'pt') => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return api.post('/cv/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      params: { language }
+    })
+  },
+
+  getSupportedLanguages: () => api.get<{
+    languages: Array<{
+      code: string
+      name: string
+      native_name: string
+    }>
+  }>('/cv/languages'),
 } 

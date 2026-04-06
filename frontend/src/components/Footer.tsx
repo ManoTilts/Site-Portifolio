@@ -1,21 +1,23 @@
-import React from 'react'
 import { motion } from 'framer-motion'
 import { Github, Linkedin, Twitter, Mail, Heart, Code2, ArrowUp, Sparkles } from 'lucide-react'
 import { Button } from './ui/Button'
+import { useLanguage } from '../contexts/LanguageContext'
 
 const Footer = () => {
+  const { t } = useLanguage()
+  
   const socialLinks = [
-    { icon: Github, href: '#', label: 'GitHub', color: 'hover:text-white' },
-    { icon: Linkedin, href: '#', label: 'LinkedIn', color: 'hover:text-blue-400' },
+    { icon: Github, href: 'https://github.com/ManoTilts', label: 'GitHub', color: 'hover:text-white' },
+    { icon: Linkedin, href: 'https://www.linkedin.com/in/felipe-mazzeo-barbosa/', label: 'LinkedIn', color: 'hover:text-blue-400' },
     { icon: Twitter, href: '#', label: 'Twitter', color: 'hover:text-sky-400' },
     { icon: Mail, href: '#contact', label: 'Email', color: 'hover:text-green-400' },
   ]
 
   const navLinks = [
-    { name: 'Home', href: '#home' },
-    { name: 'About', href: '#about' },
-    { name: 'Projects', href: '#projects' },
-    { name: 'Contact', href: '#contact' },
+    { name: t('nav.home'), href: '#home' },
+    { name: t('nav.about'), href: '#about' },
+    { name: t('nav.projects'), href: '#projects' },
+    { name: t('nav.contact'), href: '#contact' },
   ]
 
   const skills = ['React', 'TypeScript', 'Node.js', 'Python', 'UI/UX']
@@ -51,7 +53,7 @@ const Footer = () => {
                   <h3 className="text-2xl font-bold text-gradient">Portfolio</h3>
                 </div>
                 <p className="text-muted-foreground leading-relaxed">
-                  Creating digital experiences that matter. Full-stack developer passionate about building beautiful, functional applications.
+                  {t('footer.description')}
                 </p>
               </motion.div>
 
@@ -88,7 +90,7 @@ const Footer = () => {
               >
                 <h4 className="text-lg font-semibold text-foreground mb-4 flex items-center">
                   <Sparkles className="w-4 h-4 mr-2 text-primary" />
-                  Quick Links
+                  {t('footer.quickLinks')}
                 </h4>
                 <nav className="space-y-3">
                   {navLinks.map((link, index) => (
@@ -119,21 +121,21 @@ const Footer = () => {
                 transition={{ duration: 0.6, delay: 0.3 }}
                 viewport={{ once: true }}
               >
-                <h4 className="text-lg font-semibold text-foreground mb-4">Get in Touch</h4>
+                <h4 className="text-lg font-semibold text-foreground mb-4">{t('footer.getInTouch')}</h4>
                 <div className="space-y-3 text-sm">
                   <div className="text-muted-foreground">
-                    <strong className="text-foreground">Email:</strong><br />
-                    hello@yourname.com
+                    <strong className="text-foreground">{t('footer.email')}:</strong><br />
+                    felipe.mazzeo.barbosa@outlook.com
                   </div>
                   <div className="text-muted-foreground">
-                    <strong className="text-foreground">Location:</strong><br />
-                    San Francisco, CA
+                    <strong className="text-foreground">{t('footer.location')}:</strong><br />
+                    São Paulo, SP
                   </div>
                   <div className="text-muted-foreground">
-                    <strong className="text-foreground">Status:</strong><br />
+                    <strong className="text-foreground">{t('footer.status')}:</strong><br />
                     <span className="inline-flex items-center">
                       <span className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
-                      Available for work
+                      {t('footer.availableForWork')}
                     </span>
                   </div>
                 </div>
@@ -148,12 +150,14 @@ const Footer = () => {
                 transition={{ duration: 0.6, delay: 0.4 }}
                 viewport={{ once: true }}
               >
-                <h4 className="text-lg font-semibold text-foreground mb-4">Connect</h4>
+                <h4 className="text-lg font-semibold text-foreground mb-4">{t('footer.connect')}</h4>
                 <div className="grid grid-cols-2 gap-3">
                   {socialLinks.map((social, index) => (
                     <motion.a
                       key={index}
                       href={social.href}
+                      target={social.href.startsWith('http') ? '_blank' : undefined}
+                      rel={social.href.startsWith('http') ? 'noopener noreferrer' : undefined}
                       aria-label={social.label}
                       className={`flex items-center space-x-2 p-3 bg-card/50 hover:bg-accent rounded-xl border border-border/50 hover:border-primary/20 transition-all duration-300 group ${social.color}`}
                       whileHover={{ scale: 1.05, y: -2 }}
@@ -169,7 +173,7 @@ const Footer = () => {
                   ))}
                 </div>
                 <p className="text-muted-foreground text-sm mt-4">
-                  Let's connect and build something amazing together!
+                  {t('footer.connectMessage')}
                 </p>
               </motion.div>
             </div>
@@ -186,7 +190,7 @@ const Footer = () => {
               viewport={{ once: true }}
               className="text-muted-foreground text-sm"
             >
-              © {new Date().getFullYear()} Portfolio. All rights reserved.
+              © {new Date().getFullYear()} Portfolio. {t('footer.rights')}
             </motion.p>
 
             <motion.div
@@ -197,7 +201,7 @@ const Footer = () => {
               className="flex items-center space-x-4"
             >
               <div className="flex items-center space-x-2 text-muted-foreground text-sm">
-                <span>Made with</span>
+                <span>{t('footer.madeWithLove')}</span>
                 <motion.div
                   animate={{ scale: [1, 1.2, 1] }}
                   transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
@@ -214,7 +218,7 @@ const Footer = () => {
                 className="group"
               >
                 <ArrowUp className="h-4 w-4 group-hover:-translate-y-1 transition-transform" />
-                <span className="ml-1">Top</span>
+                <span className="ml-1">{t('footer.top')}</span>
               </Button>
             </motion.div>
           </div>

@@ -7,6 +7,7 @@ import Contact from './components/Contact'
 import Footer from './components/Footer'
 import TerminalPortfolio from './components/TerminalPortfolio'
 import { ThemeProvider, useTheme } from './contexts/ThemeContext'
+import { LanguageProvider } from './contexts/LanguageContext'
 import './App.css'
 
 function AppContent() {
@@ -32,9 +33,11 @@ function AppContent() {
 
 function App() {
   return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
+    <LanguageProvider>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
+    </LanguageProvider>
   )
 }
 

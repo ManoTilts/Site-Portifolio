@@ -27,9 +27,9 @@ class Admin(Document):
             IndexModel("is_active"),
         ]
     
-    def dict(self, **kwargs):
-        """Override dict method to exclude sensitive data"""
-        data = super().dict(**kwargs)
+    def model_dump(self, **kwargs):
+        """Override model_dump method to exclude sensitive data"""
+        data = super().model_dump(**kwargs)
         data["id"] = str(self.id)
         # Remove sensitive fields from serialization
         data.pop("hashed_password", None)

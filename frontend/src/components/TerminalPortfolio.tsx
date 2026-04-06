@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { projectsApi, type Project } from "../lib/api"
 import { useTheme } from "../contexts/ThemeContext"
+import ProjectDetail from "./ProjectDetail"
 
 interface Command {
   input: string
@@ -15,6 +16,8 @@ const TerminalPortfolio = () => {
   const [commandHistory, setCommandHistory] = useState<string[]>([])
   const [historyIndex, setHistoryIndex] = useState(-1)
   const [projects, setProjects] = useState<Project[]>([])
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const terminalRef = useRef<HTMLDivElement>(null)
   const { setTheme } = useTheme()
@@ -26,6 +29,8 @@ const TerminalPortfolio = () => {
     about: "Display information about me",
     skills: "List technical skills",
     projects: "Show my projects",
+    project: "View project details (usage: project <number>)",
+    view: "View project details (usage: view <project_name>)",
     contact: "Display contact information",
     experience: "Show work experience",
     education: "Display educational background",
@@ -70,6 +75,17 @@ const TerminalPortfolio = () => {
     Architecture    Full Stack Portfolio System
   `
 
+  // Helper functions for project detail modal
+  const handleProjectClick = (projectId: string) => {
+    setSelectedProjectId(projectId)
+    setIsDetailModalOpen(true)
+  }
+
+  const handleCloseDetail = () => {
+    setIsDetailModalOpen(false)
+    setSelectedProjectId(null)
+  }
+
   // Fetch projects on component mount
   useEffect(() => {
     const fetchProjects = async () => {
@@ -88,7 +104,7 @@ const TerminalPortfolio = () => {
             technologies: ['React', 'TypeScript', 'Framer Motion', 'Tailwind CSS'],
             images: [],
             links: {
-              github: 'https://github.com/user/portfolio',
+              github: 'https://github.com/ManoTilts/Site-Portifolio',
               demo: 'https://portfolio.dev'
             },
             category: 'Web Development',
@@ -104,7 +120,7 @@ const TerminalPortfolio = () => {
             technologies: ['React', 'FastAPI', 'PostgreSQL', 'Chart.js'],
             images: [],
             links: {
-              github: 'https://github.com/user/dashboard'
+              github: 'https://github.com/ManoTilts'
             },
             category: 'Full Stack',
             featured: true,
@@ -199,28 +215,36 @@ const TerminalPortfolio = () => {
             <div className="text-green-400 font-bold">Featured Projects</div>
             <div className="space-y-2 text-gray-300">
               {projects.length > 0 ? (
-                projects.map((project, index) => (
-                  <div key={project.id} className="border-l-2 border-cyan-400 pl-3">
-                    <div className="text-cyan-400 font-semibold">{project.title}</div>
-                    <div>{project.description}</div>
-                    <div className="text-sm text-gray-400">
-                      Tech: {project.technologies.join(', ')}
-                    </div>
-                    <div className="text-sm text-gray-400">
-                      Category: {project.category}
-                    </div>
-                    {project.links?.github && (
-                      <div className="text-sm text-blue-400">
-                        Repository: {project.links.github}
+                <>
+                  {projects.map((project, index) => (
+                    <div key={project.id} className="border-l-2 border-cyan-400 pl-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="text-cyan-400 font-semibold">
+                            [{index + 1}] {project.title}
+                          </div>
+                          <div className="text-sm">{project.short_description || project.description}</div>
+                          <div className="text-sm text-gray-400">
+                            Tech: {project.technologies.slice(0, 3).join(', ')}
+                            {project.technologies.length > 3 && ` +${project.technologies.length - 3} more`}
+                          </div>
+                          <div className="text-sm text-gray-400">
+                            Category: {project.category}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => executeCommand(`project ${index + 1}`)}
+                          className="text-yellow-400 hover:text-yellow-300 text-sm ml-4 underline cursor-pointer"
+                        >
+                          View Details
+                        </button>
                       </div>
-                    )}
-                    {project.links?.demo && (
-                      <div className="text-sm text-purple-400">
-                        Demo: {project.links.demo}
-                      </div>
-                    )}
+                    </div>
+                  ))}
+                  <div className="text-yellow-400 text-sm mt-3">
+                    💡 Type 'project &lt;number&gt;' to view project details (e.g., 'project 1')
                   </div>
-                ))
+                </>
               ) : (
                 <div className="text-gray-400">Loading projects from database...</div>
               )}
@@ -229,12 +253,224 @@ const TerminalPortfolio = () => {
         )
         break
 
+      case "project":
+        if (args[0]) {
+          const projectNumber = parseInt(args[0])
+          if (isNaN(projectNumber) || projectNumber < 1 || projectNumber > projects.length) {
+            output = (
+              <div className="text-red-400">
+                Invalid project number. Use 'projects' to see available projects (1-{projects.length}).
+              </div>
+            )
+                    } else {
+            const selectedProject = projects[projectNumber - 1]
+            // Show loading immediately and fetch full project details
+            const loadingCommand: Command = {
+              input: input,
+              output: <div className="text-yellow-400">Loading project details...</div>,
+              timestamp: timestamp,
+            }
+            
+            setCommands((prev) => [...prev, loadingCommand])
+            
+            // Fetch full project details
+            projectsApi.getById(selectedProject.id).then((response) => {
+              const fullProject = response.data
+              const detailCommand: Command = {
+                input: "",
+                output: (
+                  <div className="space-y-4">
+                    <div className="text-green-400 font-bold text-lg">
+                      [{projectNumber}] {fullProject.title}
+                    </div>
+                    
+                    <div className="border-l-2 border-cyan-400 pl-4 space-y-3">
+                      {fullProject.description && (
+                        <div className="text-gray-300">
+                          <div className="text-cyan-400 font-semibold mb-2">Description:</div>
+                          <div className="text-sm leading-relaxed whitespace-pre-line">{fullProject.description}</div>
+                        </div>
+                      )}
+                      
+                      <div className="text-gray-300">
+                        <div className="text-cyan-400 font-semibold mb-1">Technologies:</div>
+                        <div className="flex flex-wrap gap-1 text-sm">
+                          {fullProject.technologies.map((tech, index) => (
+                            <span key={tech} className="text-yellow-400">
+                              {tech}{index < fullProject.technologies.length - 1 ? ', ' : ''}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div className="text-gray-300">
+                        <div className="text-cyan-400 font-semibold mb-1">Category:</div>
+                        <div className="text-sm text-purple-400">{fullProject.category}</div>
+                      </div>
+                      
+                      {(fullProject.links?.github || fullProject.links?.live || fullProject.links?.demo) && (
+                        <div className="text-gray-300">
+                          <div className="text-cyan-400 font-semibold mb-1">Project Links:</div>
+                          <div className="space-y-1 text-sm">
+                            {fullProject.links?.github && (
+                              <div>
+                                <span className="text-blue-400">GitHub:</span> {fullProject.links.github}
+                              </div>
+                            )}
+                            {fullProject.links?.live && (
+                              <div>
+                                <span className="text-green-400">Live Site:</span> {fullProject.links.live}
+                              </div>
+                            )}
+                            {fullProject.links?.demo && (
+                              <div>
+                                <span className="text-purple-400">Demo:</span> {fullProject.links.demo}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {fullProject.featured && (
+                        <div className="text-yellow-400 text-sm">
+                          ⭐ Featured Project
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="text-yellow-400 text-sm">
+                      💡 Tip: Use 'projects' to see all projects or 'view &lt;keyword&gt;' to search projects
+                    </div>
+                  </div>
+                ),
+                timestamp: new Date(),
+              }
+              setCommands((prev) => [...prev, detailCommand])
+            }).catch((error) => {
+              console.error('Failed to fetch project details:', error)
+              const errorCommand: Command = {
+                input: "",
+                output: <div className="text-red-400">Failed to load project details. Please try again.</div>,
+                timestamp: new Date(),
+              }
+              setCommands((prev) => [...prev, errorCommand])
+            })
+            
+            return // Don't add the command normally since we're handling it async
+          }
+        } else {
+          output = (
+            <div className="text-yellow-400">
+              Usage: project &lt;number&gt;
+              <div className="text-gray-300 text-sm mt-1">
+                Use 'projects' to see the numbered list of available projects.
+              </div>
+            </div>
+          )
+        }
+        break
+
+      case "view":
+        if (args[0]) {
+          const searchTerm = args.join(' ').toLowerCase()
+          const foundProject = projects.find(p => 
+            p.title.toLowerCase().includes(searchTerm) ||
+            p.category.toLowerCase().includes(searchTerm) ||
+            p.technologies.some(tech => tech.toLowerCase().includes(searchTerm))
+          )
+          
+          if (foundProject) {
+            const projectIndex = projects.findIndex(p => p.id === foundProject.id) + 1
+            output = (
+              <div className="space-y-4">
+                <div className="text-green-400 font-bold">
+                  Found Project: <span className="text-cyan-400">{foundProject.title}</span>
+                </div>
+                
+                <div className="border-l-2 border-cyan-400 pl-4 space-y-3">
+                  <div className="text-gray-300">
+                    <div className="text-cyan-400 font-semibold mb-2">Description:</div>
+                    <div className="text-sm leading-relaxed whitespace-pre-line">{foundProject.description}</div>
+                  </div>
+                  
+                  <div className="text-gray-300">
+                    <div className="text-cyan-400 font-semibold mb-1">Technologies:</div>
+                    <div className="flex flex-wrap gap-1 text-sm">
+                      {foundProject.technologies.map((tech, index) => (
+                        <span key={tech} className="text-yellow-400">
+                          {tech}{index < foundProject.technologies.length - 1 ? ', ' : ''}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="text-gray-300">
+                    <div className="text-cyan-400 font-semibold mb-1">Category:</div>
+                    <div className="text-sm text-purple-400">{foundProject.category}</div>
+                  </div>
+                  
+                  {(foundProject.links?.github || foundProject.links?.live || foundProject.links?.demo) && (
+                    <div className="text-gray-300">
+                      <div className="text-cyan-400 font-semibold mb-1">Project Links:</div>
+                      <div className="space-y-1 text-sm">
+                        {foundProject.links.github && (
+                          <div>
+                            <span className="text-blue-400">GitHub:</span> {foundProject.links.github}
+                          </div>
+                        )}
+                        {foundProject.links.live && (
+                          <div>
+                            <span className="text-green-400">Live Site:</span> {foundProject.links.live}
+                          </div>
+                        )}
+                        {foundProject.links.demo && (
+                          <div>
+                            <span className="text-purple-400">Demo:</span> {foundProject.links.demo}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="text-gray-300 text-sm">
+                    <span className="text-cyan-400">Project #{projectIndex}</span> in portfolio
+                    {foundProject.featured && <span className="text-yellow-400 ml-2">⭐ Featured</span>}
+                  </div>
+                </div>
+                
+                <div className="text-yellow-400 text-sm">
+                  💡 Tip: Use 'project {projectIndex}' to view this project again or 'projects' to see all
+                </div>
+              </div>
+            )
+          } else {
+            output = (
+              <div className="text-red-400">
+                No project found matching: "{searchTerm}"
+                <div className="text-gray-300 text-sm mt-1">
+                  Use 'projects' to see available projects or try a different search term.
+                </div>
+              </div>
+            )
+          }
+        } else {
+          output = (
+            <div className="text-yellow-400">
+              Usage: view &lt;project_name_or_keyword&gt;
+              <div className="text-gray-300 text-sm mt-1">
+                Search by project name, category, or technology. Example: 'view portfolio' or 'view react'
+              </div>
+            </div>
+          )
+        }
+        break
+
       case "contact":
         output = (
           <div className="space-y-2">
             <div className="text-green-400 font-bold">Project Repository & Contact</div>
             <div className="text-gray-300 space-y-1">
-              <div>🐙 GitHub: <span className="text-blue-400">Site-Portifolio Repository</span></div>
+              <div>🐙 GitHub: <span className="text-blue-400">https://github.com/ManoTilts/Site-Portifolio</span></div>
               <div>🌐 Demo: Interactive Portfolio with Multiple Themes</div>
               <div>📧 Contact: Use the contact form in normal portfolio view</div>
               <div>💻 Features: Terminal UI, Project Showcase, Admin Panel</div>
@@ -414,17 +650,61 @@ const TerminalPortfolio = () => {
             setTheme(args[0] as any)
             output = (
               <div className="text-green-400">
-                ✓ Theme switched to: {args[0]}
+                ✓ Theme switched to: <span className="font-bold">{args[0]}</span>
                 <div className="text-gray-300 mt-1">
-                  {args[0] === 'cmd' ? 'Already in terminal mode!' : 'Switching to normal view...'}
+                  {args[0] === 'cmd' ? 
+                    'Already in terminal mode!' : 
+                    `Switching to ${args[0]} theme view...`
+                  }
+                </div>
+                <div className="text-cyan-400 text-sm mt-2">
+                  {args[0] === 'default' && '🎨 Modern dark theme with blue accents'}
+                  {args[0] === 'angler' && '🔥 Angular-inspired red/pink theme'}
+                  {args[0] === 'magic' && '✨ Mystical purple theme with magical vibes'}
+                  {args[0] === 'cmd' && '💻 Terminal/command line interface'}
                 </div>
               </div>
             )
+            
+            // Add delay for non-cmd themes to show the message before switching
+            if (args[0] !== 'cmd') {
+              setTimeout(() => setTheme(args[0] as any), 1500)
+            }
           } else {
-            output = <div className="text-red-400">Unknown theme: {args[0]}</div>
+            output = (
+              <div className="text-red-400">
+                Unknown theme: {args[0]}
+                <div className="text-gray-300 mt-1">Available themes: default, angler, magic, cmd</div>
+              </div>
+            )
           }
         } else {
-          output = <div className="text-gray-300">Current theme: cmd</div>
+          output = (
+            <div className="space-y-2">
+              <div className="text-cyan-400 font-bold">Available Themes:</div>
+              <div className="space-y-1 text-gray-300">
+                <div className="flex items-center space-x-2">
+                  <span className="text-blue-400 w-12">default</span>
+                  <span>- Modern dark theme (current portfolio view)</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-pink-400 w-12">angler</span>
+                  <span>- Angular-inspired red/pink theme</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-purple-400 w-12">magic</span>
+                  <span>- Mystical purple theme with magical vibes</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-green-400 w-12">cmd</span>
+                  <span>- Terminal interface (current view)</span>
+                </div>
+              </div>
+              <div className="text-yellow-400 text-sm mt-2">
+                Usage: theme &lt;theme_name&gt;
+              </div>
+            </div>
+          )
         }
         break
 
@@ -594,6 +874,13 @@ const TerminalPortfolio = () => {
           <div className="mt-1">Built with React & TypeScript • Terminal Portfolio v1.0</div>
         </div>
       </div>
+
+      {/* Project Detail Modal */}
+      <ProjectDetail
+        projectId={selectedProjectId}
+        isOpen={isDetailModalOpen}
+        onClose={handleCloseDetail}
+      />
     </div>
   )
 }

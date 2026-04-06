@@ -6,13 +6,19 @@ import { Button } from './ui/Button'
 import { Badge } from './ui/Badge'
 import { projectsApi, type Project } from '../lib/api'
 import { useInView } from 'react-intersection-observer'
+import ProjectDetail from './ProjectDetail'
+import { useLanguage } from '../contexts/LanguageContext'
 
 
 const Projects = () => {
+  const { t } = useLanguage()
   const [projects, setProjects] = useState<Project[]>([])
   const [categories, setCategories] = useState<string[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [loading, setLoading] = useState(true)
+  const [hasError, setHasError] = useState(false)
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
   const [ref, inView] = useInView({
     triggerOnce: true,
     threshold: 0.1,
@@ -30,7 +36,7 @@ const Projects = () => {
         setCategories(['all', ...categoriesResponse.data.categories.map(c => c.name)])
       } catch (error) {
         console.error('Error fetching projects:', error)
-        // No fallback - show database connection error
+        setHasError(true)
         setProjects([])
         setCategories(['all'])
       } finally {
@@ -44,6 +50,16 @@ const Projects = () => {
   const filteredProjects = selectedCategory === 'all' 
     ? projects 
     : projects.filter(project => project.category === selectedCategory)
+
+  const handleProjectClick = (projectId: string) => {
+    setSelectedProjectId(projectId)
+    setIsDetailModalOpen(true)
+  }
+
+  const handleCloseDetail = () => {
+    setIsDetailModalOpen(false)
+    setSelectedProjectId(null)
+  }
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -89,11 +105,10 @@ const Projects = () => {
               <Star className="w-6 h-6 text-primary animate-pulse" />
             </div>
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6">
-              Featured <span className="text-gradient">Projects</span>
+              {t('projects.featured')}
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-              A collection of projects that showcase my skills and passion for creating 
-              exceptional digital experiences that solve real-world problems.
+              {t('projects.subtitle')}
             </p>
           </motion.div>
 
@@ -113,7 +128,7 @@ const Projects = () => {
                 {category === 'all' ? (
                   <>
                     <Filter className="mr-2 h-4 w-4 group-hover:rotate-180 transition-transform duration-300" />
-                    All Projects
+                    {t('projects.allProjects')}
                   </>
                 ) : (
                   <>
@@ -158,6 +173,7 @@ const Projects = () => {
                     project={project} 
                     variants={cardVariants}
                     index={index}
+                    onProjectClick={handleProjectClick}
                   />
                 ))}
               </motion.div>
@@ -171,19 +187,46 @@ const Projects = () => {
               initial="hidden"
               animate="visible"
             >
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-muted/50 rounded-full mb-6">
-                <Eye className="w-8 h-8 text-muted-foreground" />
-              </div>
-              <p className="text-muted-foreground text-xl font-medium">
-                No projects found in this category.
-              </p>
-              <p className="text-muted-foreground text-sm mt-2">
-                Try selecting a different category or check back later.
-              </p>
+              {hasError ? (
+                // API offline — friendly message
+                <div className="max-w-md mx-auto">
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 rounded-full mb-6">
+                    <Eye className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-foreground mb-3">Projects loading soon</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed mb-6">
+                    The project database is warming up. In the meantime, you can browse my work on GitHub directly.
+                  </p>
+                  <a
+                    href="https://github.com/ManoTilts"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary/10 hover:bg-primary/20 border border-primary/30 text-primary font-medium text-sm transition-all duration-200 hover:scale-105"
+                  >
+                    View on GitHub →
+                  </a>
+                </div>
+              ) : (
+                // Filter returned no results
+                <>
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-muted/50 rounded-full mb-6">
+                    <Eye className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <p className="text-muted-foreground text-xl font-medium">{t('projects.noProjects')}</p>
+                  <p className="text-muted-foreground text-sm mt-2">{t('projects.tryDifferent')}</p>
+                </>
+              )}
             </motion.div>
           )}
         </motion.div>
       </div>
+
+      {/* Project Detail Modal */}
+      <ProjectDetail
+        projectId={selectedProjectId}
+        isOpen={isDetailModalOpen}
+        onClose={handleCloseDetail}
+      />
     </section>
   )
 }
@@ -192,9 +235,10 @@ interface ProjectCardProps {
   project: Project
   variants: any
   index: number
+  onProjectClick: (projectId: string) => void
 }
 
-const ProjectCard: React.FC<ProjectCardProps> = ({ project, variants, index }) => {
+const ProjectCard: React.FC<ProjectCardProps> = ({ project, variants, index, onProjectClick }) => {
   const [isHovered, setIsHovered] = useState(false)
 
   return (
@@ -206,7 +250,10 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, variants, index }) =
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
     >
-      <Card className="h-full overflow-hidden group hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 border-border/50">
+      <Card 
+        className="h-full overflow-hidden group hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 border-border/50 cursor-pointer"
+        onClick={() => onProjectClick(project.id)}
+      >
         <div className="relative overflow-hidden">
           <motion.img
             src={project.thumbnail || '/api/placeholder/400/250'}
@@ -231,7 +278,15 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, variants, index }) =
                     animate={{ y: isHovered ? 0 : 20, opacity: isHovered ? 1 : 0 }}
                     transition={{ delay: 0.1 }}
                   >
-                    <Button size="sm" variant="secondary" className="backdrop-blur-sm">
+                    <Button 
+                      size="sm" 
+                      variant="secondary" 
+                      className="backdrop-blur-sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        window.open(project.links?.live, '_blank', 'noopener,noreferrer')
+                      }}
+                    >
                       <ExternalLink className="h-4 w-4 mr-2" />
                       Live Demo
                     </Button>
@@ -243,7 +298,15 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, variants, index }) =
                     animate={{ y: isHovered ? 0 : 20, opacity: isHovered ? 1 : 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <Button size="sm" variant="outline" className="backdrop-blur-sm">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="backdrop-blur-sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        window.open(project.links?.github, '_blank', 'noopener,noreferrer')
+                      }}
+                    >
                       <Github className="h-4 w-4 mr-2" />
                       Code
                     </Button>

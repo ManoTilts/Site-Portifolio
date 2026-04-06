@@ -1,5 +1,5 @@
 import logging
-from motor.motor_asyncio import AsyncIOMotorClient
+from typing import Any, Optional
 from beanie import init_beanie
 
 from app.config.settings import settings
@@ -12,8 +12,8 @@ logger = logging.getLogger(__name__)
 
 class Database:
     """Database connection manager"""
-    client: AsyncIOMotorClient = None
-    database = None
+    client: Optional[Any] = None
+    database: Optional[Any] = None
 
 
 database = Database()
@@ -27,12 +27,12 @@ async def get_database():
 async def connect_to_mongo():
     """Create database connection"""
     try:
+        from motor.motor_asyncio import AsyncIOMotorClient
         database.client = AsyncIOMotorClient(settings.MONGODB_URL)
         database.database = database.client[settings.DATABASE_NAME]
         
         # Test connection
         await database.client.admin.command('ismaster')
-        logger.info(f"Connected to MongoDB: {settings.DATABASE_NAME}")
         
     except Exception as e:
         logger.error(f"Failed to connect to MongoDB: {e}")
@@ -63,8 +63,6 @@ async def init_database():
         # Create default admin user if not exists
         await create_default_admin()
         
-        logger.info("Database initialization complete")
-        
     except Exception as e:
         logger.error(f"Database initialization failed: {e}")
         raise
@@ -88,7 +86,7 @@ async def create_indexes():
         await Admin.create_index("username", unique=True)
         await Admin.create_index("email", unique=True)
         
-        logger.info("Database indexes created successfully")
+
         
     except Exception as e:
         logger.warning(f"Index creation warning: {e}")
@@ -107,9 +105,6 @@ async def create_default_admin():
                 hashed_password=get_password_hash(settings.ADMIN_PASSWORD)
             )
             await admin.insert()
-            logger.info(f"Default admin user created: {settings.ADMIN_USERNAME}")
-        else:
-            logger.info("Admin user already exists")
             
     except Exception as e:
         logger.error(f"Failed to create default admin: {e}") 

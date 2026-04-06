@@ -27,66 +27,120 @@ async def create_project(project_data: ProjectCreateSchema):
             from app.utils.helpers import create_slug
             project_data.slug = create_slug(project_data.title)
         
-        project = Project(**project_data.dict())
-        await project.save()
+        # Convert schema to dict and handle URL serialization
+        project_dict = project_data.model_dump()
         
-        return ProjectResponseSchema.from_orm(project)
+        # Convert Pydantic URL objects to strings for MongoDB compatibility
+        def convert_urls_to_strings(obj):
+            if isinstance(obj, dict):
+                return {k: convert_urls_to_strings(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [convert_urls_to_strings(item) for item in obj]
+            elif hasattr(obj, '__str__') and 'pydantic_core' in str(type(obj)):
+                return str(obj)
+            else:
+                return obj
+        
+        project_dict = convert_urls_to_strings(project_dict)
+        
+        # Add datetime fields
+        from datetime import datetime
+        now = datetime.utcnow()
+        project_dict["date_created"] = now
+        project_dict["date_updated"] = now
+        
+        # Create project using motor collection directly as fallback
+        from app.config.database import database
+        collection = database.database.projects
+        
+        # Insert the document and get the result
+        result = await collection.insert_one(project_dict)
+        
+        # Retrieve the created document
+        project_doc = await collection.find_one({"_id": result.inserted_id})
+        
+        # Convert ObjectId to string for response
+        project_doc["id"] = str(project_doc["_id"])
+        del project_doc["_id"]
+        
+        return ProjectResponseSchema.model_validate(project_doc)
         
     except Exception as e:
-        logger.error(f"Error creating project: {e}")
-        raise HTTPException(status_code=500, detail="Failed to create project")
+        logger.error(f"Error creating project: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to create project: {str(e)}")
 
 
 @router.put("/projects/{project_id}", response_model=ProjectResponseSchema)
 async def update_project(project_id: str, project_data: ProjectUpdateSchema):
     """Update an existing project"""
     try:
+        from app.config.database import database
+        from datetime import datetime
+        collection = database.database.projects
+        
+        # Try to find by ObjectId first, then by slug
+        project_doc = None
         try:
             object_id = PydanticObjectId(project_id)
-            project = await Project.get(object_id)
+            project_doc = await collection.find_one({"_id": object_id})
         except:
-            project = await Project.find_one({"slug": project_id})
+            project_doc = await collection.find_one({"slug": project_id})
         
-        if not project:
+        if not project_doc:
             raise HTTPException(status_code=404, detail="Project not found")
         
         # Update fields
-        update_data = project_data.dict(exclude_unset=True)
-        for field, value in update_data.items():
-            setattr(project, field, value)
+        update_data = project_data.model_dump(exclude_unset=True)
+        update_data["date_updated"] = datetime.utcnow()
         
-        project.update_timestamp()
-        await project.save()
+        # Update the document
+        await collection.update_one(
+            {"_id": project_doc["_id"]},
+            {"$set": update_data}
+        )
         
-        return ProjectResponseSchema.from_orm(project)
+        # Retrieve updated document
+        updated_doc = await collection.find_one({"_id": project_doc["_id"]})
+        
+        # Convert ObjectId to string for response
+        updated_doc["id"] = str(updated_doc["_id"])
+        del updated_doc["_id"]
+        
+        return ProjectResponseSchema.model_validate(updated_doc)
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error updating project {project_id}: {e}")
-        raise HTTPException(status_code=500, detail="Failed to update project")
+        logger.error(f"Error updating project {project_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to update project: {str(e)}")
 
 
 @router.delete("/projects/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_project(project_id: str):
     """Delete a project"""
     try:
+        from app.config.database import database
+        collection = database.database.projects
+        
+        # Try to find by ObjectId first, then by slug
+        project_doc = None
         try:
             object_id = PydanticObjectId(project_id)
-            project = await Project.get(object_id)
+            project_doc = await collection.find_one({"_id": object_id})
         except:
-            project = await Project.find_one({"slug": project_id})
+            project_doc = await collection.find_one({"slug": project_id})
         
-        if not project:
+        if not project_doc:
             raise HTTPException(status_code=404, detail="Project not found")
         
-        await project.delete()
+        # Delete the document
+        await collection.delete_one({"_id": project_doc["_id"]})
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error deleting project {project_id}: {e}")
-        raise HTTPException(status_code=500, detail="Failed to delete project")
+        logger.error(f"Error deleting project {project_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to delete project: {str(e)}")
 
 
 @router.get("/projects", response_model=PaginatedResponse[ProjectListSchema])
@@ -97,22 +151,36 @@ async def get_all_projects(
 ):
     """Get all projects (including drafts) for admin"""
     try:
+        # Use motor collection directly to avoid Beanie initialization issues
+        from app.config.database import database
+        collection = database.database.projects
+        
         # Build query
         query_filter = {}
         if status_filter:
             query_filter["status"] = status_filter
         
-        query = Project.find(query_filter)
-        
         # Get total count
-        total = await query.count()
+        total = await collection.count_documents(query_filter)
         
         # Apply pagination and sorting
         skip = (page - 1) * per_page
-        projects = await query.sort(-Project.order, -Project.date_created).skip(skip).limit(per_page).to_list()
+        cursor = collection.find(query_filter).sort([("order", -1), ("date_created", -1)]).skip(skip).limit(per_page)
+        projects_data = await cursor.to_list(length=per_page)
         
-        # Convert to response schema
-        project_list = [ProjectListSchema.from_orm(project) for project in projects]
+        # Convert ObjectId to string and prepare for schema validation
+        project_list = []
+        for project_data in projects_data:
+            # Convert ObjectId to string
+            project_data["id"] = str(project_data["_id"])
+            del project_data["_id"]
+            
+            # Convert nested objects to proper format
+            if "links" in project_data and project_data["links"]:
+                # Ensure links is properly formatted
+                pass
+            
+            project_list.append(ProjectListSchema.model_validate(project_data))
         
         # Calculate pagination info
         pagination = calculate_pagination(total, page, per_page)
@@ -128,5 +196,5 @@ async def get_all_projects(
         )
         
     except Exception as e:
-        logger.error(f"Error fetching projects: {e}")
-        raise HTTPException(status_code=500, detail="Failed to fetch projects") 
+        logger.error(f"Error fetching projects: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to fetch projects: {str(e)}") 

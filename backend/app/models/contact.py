@@ -31,9 +31,9 @@ class Contact(Document):
             IndexModel("replied"),
         ]
     
-    def dict(self, **kwargs):
-        """Override dict method to include computed fields"""
-        data = super().dict(**kwargs)
+    def model_dump(self, **kwargs):
+        """Override model_dump method to include computed fields"""
+        data = super().model_dump(**kwargs)
         data["id"] = str(self.id)
         return data
     
