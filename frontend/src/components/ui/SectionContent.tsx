@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Github, ExternalLink, Mail, MapPin, Phone, Linkedin, FileText, Download } from 'lucide-react'
 import { cvApi, type Project } from '../../lib/api'
 import { useLanguage } from '../../contexts/LanguageContext'
@@ -11,6 +12,56 @@ export interface ContentPalette {
   chip: string
   link: string
   heading: string
+  // Drives the scene-specific project cover treatment.
+  variant: 'magic' | 'angler'
+}
+
+/**
+ * Compact project cover. In the Magic scene it's treated like a conjured
+ * vision (arcane tint + glowing frame + a shimmer that sweeps across like a
+ * spell); in Angler it's a clean framed photo. Falls back to a themed gradient
+ * if the image fails to load, so a card never shows a broken image.
+ */
+const ProjectCover = ({ src, variant }: { src?: string; variant: 'magic' | 'angler' }) => {
+  const [failed, setFailed] = useState(false)
+  if (!src) return null
+
+  if (variant === 'magic') {
+    return (
+      <div className="relative mb-3 h-24 overflow-hidden rounded-xl ring-1 ring-fuchsia-300/30 shadow-[0_0_22px_rgba(217,70,239,0.28)]">
+        {failed ? (
+          <div className="h-full w-full bg-[conic-gradient(from_0deg,#c026d3,#7c3aed,#4f46e5,#a855f7,#c026d3)] opacity-70" />
+        ) : (
+          <img
+            src={src}
+            alt=""
+            loading="lazy"
+            onError={() => setFailed(true)}
+            className="h-full w-full object-cover"
+            style={{ filter: 'saturate(1.2) brightness(0.82)' }}
+          />
+        )}
+        {/* arcane tint + blend into the panel */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-purple-900/70 via-fuchsia-600/25 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#160a35] to-transparent" />
+        <span className="absolute right-2 top-1.5 text-sm text-fuchsia-200/90 drop-shadow-[0_0_6px_rgba(217,70,239,0.9)]">✦</span>
+        {/* spell shimmer sweeping across the vision */}
+        <div className="pointer-events-none absolute inset-0 animate-shimmer bg-gradient-to-r from-transparent via-fuchsia-200/25 to-transparent" />
+      </div>
+    )
+  }
+
+  // angler — a framed photo of the catch
+  return (
+    <div className="relative mb-3 h-24 overflow-hidden rounded-lg border border-teal-700/25">
+      {failed ? (
+        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-cyan-200 to-teal-400 text-2xl">🐟</div>
+      ) : (
+        <img src={src} alt="" loading="lazy" onError={() => setFailed(true)} className="h-full w-full object-cover" />
+      )}
+      <div className="absolute inset-0 bg-gradient-to-t from-white/60 via-transparent to-cyan-100/20" />
+    </div>
+  )
 }
 
 interface SectionContentProps {
@@ -70,6 +121,7 @@ export const SectionContent = ({ id, palette: p, projects, projectsError }: Sect
       <div className="space-y-3">
         {projects.map((project) => (
           <div key={project.id} className={`rounded-xl p-4 ${p.card}`}>
+            <ProjectCover src={project.thumbnail} variant={p.variant} />
             <div className="flex items-start justify-between gap-3">
               <h4 className={`font-semibold ${p.body}`}>{project.title}</h4>
               <div className="flex gap-2 shrink-0">

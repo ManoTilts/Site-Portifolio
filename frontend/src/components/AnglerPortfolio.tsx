@@ -16,6 +16,7 @@ const ANGLER_PALETTE: ContentPalette = {
   chip: 'bg-teal-600/10 border border-teal-700/20 text-teal-900',
   link: 'bg-teal-600/15 hover:bg-teal-600/25 border border-teal-700/20 text-teal-900',
   heading: 'text-teal-700/80',
+  variant: 'angler',
 }
 
 // Cloud positions as % of the stage (left, top). Kept below the title band

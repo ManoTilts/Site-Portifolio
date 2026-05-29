@@ -27,6 +27,7 @@ const MAGIC_PALETTE: ContentPalette = {
   chip: 'bg-purple-400/10 border border-purple-300/20 text-purple-100/90',
   link: 'bg-purple-400/10 hover:bg-purple-400/20 border border-purple-300/20 text-purple-100',
   heading: 'text-fuchsia-300/80',
+  variant: 'magic',
 }
 
 const MagicPortfolio = () => {
