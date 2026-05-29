@@ -4,7 +4,8 @@ import { ExternalLink, Github, Eye, Filter, Star, Calendar, ArrowUpRight } from 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/Card'
 import { Button } from './ui/Button'
 import { Badge } from './ui/Badge'
-import { projectsApi, type Project } from '../lib/api'
+import { type Project } from '../lib/api'
+import { fetchGithubProjects } from '../lib/github'
 import { useInView } from 'react-intersection-observer'
 import { useLanguage } from '../contexts/LanguageContext'
 
@@ -19,7 +20,7 @@ const Projects = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [loading, setLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
   const [ref, inView] = useInView({
     triggerOnce: true,
@@ -29,13 +30,11 @@ const Projects = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [projectsResponse, categoriesResponse] = await Promise.all([
-          projectsApi.getAll({ per_page: 50 }),
-          projectsApi.getCategories(),
-        ])
-        
-        setProjects(projectsResponse.data.items)
-        setCategories(['all', ...categoriesResponse.data.categories.map(c => c.name)])
+        const items = await fetchGithubProjects()
+        setProjects(items)
+        // Derive category filters from the languages present.
+        const cats = Array.from(new Set(items.map((p) => p.category).filter(Boolean)))
+        setCategories(['all', ...cats])
       } catch (error) {
         console.error('Error fetching projects:', error)
         setHasError(true)
@@ -53,14 +52,14 @@ const Projects = () => {
     ? projects 
     : projects.filter(project => project.category === selectedCategory)
 
-  const handleProjectClick = (projectId: string) => {
-    setSelectedProjectId(projectId)
+  const handleProjectClick = (project: Project) => {
+    setSelectedProject(project)
     setIsDetailModalOpen(true)
   }
 
   const handleCloseDetail = () => {
     setIsDetailModalOpen(false)
-    setSelectedProjectId(null)
+    setSelectedProject(null)
   }
 
   const containerVariants = {
@@ -189,15 +188,15 @@ const Projects = () => {
               initial="hidden"
               animate="visible"
             >
-              {hasError ? (
-                // API offline — friendly message
+              {hasError || projects.length === 0 ? (
+                // Nothing to show yet (no tagged repos, or GitHub unreachable)
                 <div className="max-w-md mx-auto">
                   <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 rounded-full mb-6">
                     <Eye className="w-8 h-8 text-primary" />
                   </div>
-                  <h3 className="text-xl font-semibold text-foreground mb-3">Projects loading soon</h3>
+                  <h3 className="text-xl font-semibold text-foreground mb-3">More on GitHub</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed mb-6">
-                    The project database is warming up. In the meantime, you can browse my work on GitHub directly.
+                    Browse my repositories directly on GitHub.
                   </p>
                   <a
                     href="https://github.com/ManoTilts"
@@ -227,7 +226,8 @@ const Projects = () => {
       {isDetailModalOpen && (
         <Suspense fallback={null}>
           <ProjectDetail
-            projectId={selectedProjectId}
+            projectId={selectedProject?.id ?? null}
+            project={selectedProject}
             isOpen={isDetailModalOpen}
             onClose={handleCloseDetail}
           />
@@ -241,7 +241,7 @@ interface ProjectCardProps {
   project: Project
   variants: any
   index: number
-  onProjectClick: (projectId: string) => void
+  onProjectClick: (project: Project) => void
 }
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project, variants, index, onProjectClick }) => {
@@ -258,7 +258,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, variants, index, onP
     >
       <Card 
         className="h-full overflow-hidden group hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 border-border/50 cursor-pointer"
-        onClick={() => onProjectClick(project.id)}
+        onClick={() => onProjectClick(project)}
       >
         <div className="relative overflow-hidden">
           <motion.img

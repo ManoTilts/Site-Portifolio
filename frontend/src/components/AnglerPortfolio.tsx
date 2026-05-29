@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
-import { projectsApi, type Project } from '../lib/api'
+import { type Project } from '../lib/api'
+import { fetchGithubProjects } from '../lib/github'
 import { useLanguage } from '../contexts/LanguageContext'
 import { SECTIONS, type SectionId } from '../lib/portfolioData'
 import SceneControls from './ui/SceneControls'
@@ -38,9 +39,8 @@ const AnglerPortfolio = () => {
   const [line, setLine] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null)
 
   useEffect(() => {
-    projectsApi
-      .getFeatured(6)
-      .then((res) => setProjects(res.data))
+    fetchGithubProjects()
+      .then(setProjects)
       .catch(() => setProjectsError(true))
   }, [])
 

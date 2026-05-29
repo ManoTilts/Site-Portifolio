@@ -22,20 +22,29 @@ interface ProjectDetailProps {
   projectId: string | null
   isOpen: boolean
   onClose: () => void
+  // When provided (e.g. GitHub-sourced data), the modal uses it directly
+  // instead of fetching the project by id from the backend.
+  project?: Project | null
 }
 
-const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, isOpen, onClose }) => {
-  const [project, setProject] = useState<Project | null>(null)
+const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, isOpen, onClose, project: providedProject }) => {
+  const [project, setProject] = useState<Project | null>(providedProject ?? null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [copiedUrl, setCopiedUrl] = useState(false)
 
   useEffect(() => {
-    if (projectId && isOpen) {
+    if (!isOpen) return
+    if (providedProject) {
+      setProject(providedProject)
+      setCurrentImageIndex(0)
+      return
+    }
+    if (projectId) {
       fetchProject()
     }
-  }, [projectId, isOpen])
+  }, [projectId, isOpen, providedProject])
 
   const fetchProject = async () => {
     if (!projectId) return

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
-import { projectsApi, type Project } from '../lib/api'
+import { type Project } from '../lib/api'
+import { fetchGithubProjects } from '../lib/github'
 import { useLanguage } from '../contexts/LanguageContext'
 import { SECTIONS, type SectionId } from '../lib/portfolioData'
 import SceneControls from './ui/SceneControls'
@@ -38,9 +39,8 @@ const MagicPortfolio = () => {
   const wizardImgOk = wizardSrcIdx < WIZARD_SRCS.length
 
   useEffect(() => {
-    projectsApi
-      .getFeatured(6)
-      .then((res) => setProjects(res.data))
+    fetchGithubProjects()
+      .then(setProjects)
       .catch(() => setProjectsError(true))
   }, [])
 
