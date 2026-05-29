@@ -27,19 +27,14 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [currentTheme, setCurrentTheme] = useState<Theme>(() => {
-    try {
-      const saved = localStorage.getItem('portfolio-theme') as Theme
-      return THEME_ORDER.includes(saved) ? saved : 'default'
-    } catch {
-      return 'default'
-    }
-  })
+  // Always open on the standard "default" layout. The immersive themes
+  // (cmd / magic / angler) are opt-in per visit and intentionally NOT persisted,
+  // so a returning visitor never lands straight in a terminal/scene.
+  const [currentTheme, setCurrentTheme] = useState<Theme>('default')
 
   const applyTheme = useCallback((theme: Theme) => {
     document.body.className = ''
     document.body.classList.add(`theme-${theme}`)
-    try { localStorage.setItem('portfolio-theme', theme) } catch {}
   }, [])
 
   const setTheme = useCallback((theme: Theme) => {
