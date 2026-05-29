@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, Github, Linkedin, Mail, Code2, Settings, Zap, Palette, Terminal } from 'lucide-react'
+import { Menu, X, Github, Linkedin, Mail, Code2, Settings, Fish, Sparkles, Terminal } from 'lucide-react'
 import { Button } from './ui/Button'
 import { LanguageToggle } from './ui/LanguageToggle'
 import { useTheme } from '../contexts/ThemeContext'
@@ -10,9 +10,9 @@ import type { Theme } from '../contexts/ThemeContext'
 
 const THEMES: { value: Theme; icon: React.ReactNode; color: string; label: string }[] = [
   { value: 'default', icon: <Settings size={14} strokeWidth={1.5} />, color: '#6366f1', label: 'Default' },
-  { value: 'angler',  icon: <Zap size={14} strokeWidth={1.5} />,      color: '#dc2675', label: 'Angler' },
-  { value: 'magic',   icon: <Palette size={14} strokeWidth={1.5} />,  color: '#9333ea', label: 'Magic' },
-  { value: 'cmd',     icon: <Terminal size={14} strokeWidth={1.5} />, color: '#00ff00', label: 'CMD' },
+  { value: 'angler',  icon: <Fish size={14} strokeWidth={1.5} />,     color: '#38bdf8', label: 'Angler' },
+  { value: 'magic',   icon: <Sparkles size={14} strokeWidth={1.5} />, color: '#a855f7', label: 'Magic' },
+  { value: 'cmd',     icon: <Terminal size={14} strokeWidth={1.5} />, color: '#22c55e', label: 'CMD' },
 ]
 
 const Header = () => {

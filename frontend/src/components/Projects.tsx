@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense, lazy } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ExternalLink, Github, Eye, Filter, Star, Calendar, ArrowUpRight } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/Card'
@@ -6,8 +6,10 @@ import { Button } from './ui/Button'
 import { Badge } from './ui/Badge'
 import { projectsApi, type Project } from '../lib/api'
 import { useInView } from 'react-intersection-observer'
-import ProjectDetail from './ProjectDetail'
 import { useLanguage } from '../contexts/LanguageContext'
+
+// Loaded on demand the first time a project modal is opened.
+const ProjectDetail = lazy(() => import('./ProjectDetail'))
 
 
 const Projects = () => {
@@ -221,12 +223,16 @@ const Projects = () => {
         </motion.div>
       </div>
 
-      {/* Project Detail Modal */}
-      <ProjectDetail
-        projectId={selectedProjectId}
-        isOpen={isDetailModalOpen}
-        onClose={handleCloseDetail}
-      />
+      {/* Project Detail Modal — mounted only once a project is opened */}
+      {isDetailModalOpen && (
+        <Suspense fallback={null}>
+          <ProjectDetail
+            projectId={selectedProjectId}
+            isOpen={isDetailModalOpen}
+            onClose={handleCloseDetail}
+          />
+        </Suspense>
+      )}
     </section>
   )
 }

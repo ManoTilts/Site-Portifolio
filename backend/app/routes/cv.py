@@ -1,11 +1,13 @@
 import logging
 import os
 from typing import Optional, Literal
-from fastapi import APIRouter, UploadFile, File, HTTPException, status, Query
+from fastapi import APIRouter, UploadFile, File, HTTPException, status, Query, Depends
 from fastapi.responses import FileResponse
 from pathlib import Path
 
 from app.config.settings import settings
+from app.models.admin import Admin
+from app.utils.dependencies import get_current_admin
 
 logger = logging.getLogger(__name__)
 
@@ -35,8 +37,9 @@ def get_cv_filename(language: str) -> str:
 
 @router.post("/cv/upload", status_code=status.HTTP_201_CREATED)
 async def upload_cv(
-    file: UploadFile = File(...), 
-    language: Literal["en", "pt"] = Query(..., description="Language of the CV (en for English, pt for Portuguese)")
+    file: UploadFile = File(...),
+    language: Literal["en", "pt"] = Query(..., description="Language of the CV (en for English, pt for Portuguese)"),
+    current_admin: Admin = Depends(get_current_admin),
 ):
     """Upload CV/Resume in a specific language (PDF only)"""
     try:
@@ -54,38 +57,38 @@ async def upload_cv(
                 detail="Only PDF files are allowed for CV upload"
             )
         
-        # Check file size (5MB limit for CV)
-        if file.size > 5 * 1024 * 1024:
+        # Read content first so the size limit holds even without Content-Length
+        content = await file.read()
+        if len(content) > 5 * 1024 * 1024:
             raise HTTPException(
-                status_code=413, 
+                status_code=413,
                 detail="CV file too large. Maximum size is 5MB."
             )
-        
+
         # Create CV directory if it doesn't exist
         cv_dir = os.path.join(settings.UPLOAD_DIR, "cv")
         os.makedirs(cv_dir, exist_ok=True)
-        
+
         # Get file path for this language
         cv_path = get_cv_path(language)
-        
+
         # Remove existing CV for this language if it exists
         if os.path.exists(cv_path):
             os.remove(cv_path)
-        
+
         # Save new CV
         with open(cv_path, "wb") as buffer:
-            content = await file.read()
             buffer.write(content)
-        
+
         logger.info(f"CV uploaded successfully for language '{language}': {file.filename}")
-        
+
         return {
             "message": f"CV uploaded successfully for {LANGUAGE_NAMES[language]}",
             "language": language,
             "language_name": LANGUAGE_NAMES[language],
             "filename": f"cv_{language}.pdf",
             "original_filename": file.filename,
-            "size": file.size,
+            "size": len(content),
             "download_url": f"/api/cv/download?language={language}",
             "view_url": f"/api/cv/view?language={language}"
         }
@@ -240,7 +243,10 @@ async def get_cv_info(language: Optional[Literal["en", "pt"]] = Query(None, desc
 
 
 @router.delete("/cv", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_cv(language: Optional[Literal["en", "pt"]] = Query(None, description="Language to delete, or all if not specified")):
+async def delete_cv(
+    language: Optional[Literal["en", "pt"]] = Query(None, description="Language to delete, or all if not specified"),
+    current_admin: Admin = Depends(get_current_admin),
+):
     """Delete CV for specific language or all languages"""
     try:
         if language:

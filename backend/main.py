@@ -10,7 +10,7 @@ from app.config.settings import settings
 from app.config.database import init_database
 from app.middleware.error_handler import ErrorHandlerMiddleware
 from app.middleware.rate_limiter import RateLimiterMiddleware
-from app.routes import projects, contact, admin, upload, health, cv
+from app.routes import projects, contact, admin, upload, health, cv, auth
 from app.utils.logger import setup_logging
 
 
@@ -66,6 +66,7 @@ if os.path.exists(settings.UPLOAD_DIR):
 app.include_router(health.router, prefix="/api", tags=["health"])
 app.include_router(projects.router, prefix="/api", tags=["projects"])
 app.include_router(contact.router, prefix="/api", tags=["contact"])
+app.include_router(auth.router, prefix="/api/admin", tags=["auth"])
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 app.include_router(upload.router, prefix="/api/admin", tags=["upload"])
 app.include_router(cv.router, prefix="/api", tags=["cv"])

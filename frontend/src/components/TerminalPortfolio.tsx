@@ -76,11 +76,6 @@ const TerminalPortfolio = () => {
   `
 
   // Helper functions for project detail modal
-  const handleProjectClick = (projectId: string) => {
-    setSelectedProjectId(projectId)
-    setIsDetailModalOpen(true)
-  }
-
   const handleCloseDetail = () => {
     setIsDetailModalOpen(false)
     setSelectedProjectId(null)

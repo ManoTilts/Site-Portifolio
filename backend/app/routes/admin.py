@@ -12,6 +12,8 @@ from app.schemas.project import (
 )
 from app.schemas.common import PaginatedResponse
 from app.utils.helpers import calculate_pagination
+from app.utils.dependencies import get_current_admin
+from app.models.admin import Admin
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +21,10 @@ router = APIRouter()
 
 
 @router.post("/projects", response_model=ProjectResponseSchema, status_code=status.HTTP_201_CREATED)
-async def create_project(project_data: ProjectCreateSchema):
+async def create_project(
+    project_data: ProjectCreateSchema,
+    current_admin: Admin = Depends(get_current_admin),
+):
     """Create a new project"""
     try:
         # Create slug if not provided
@@ -71,7 +76,11 @@ async def create_project(project_data: ProjectCreateSchema):
 
 
 @router.put("/projects/{project_id}", response_model=ProjectResponseSchema)
-async def update_project(project_id: str, project_data: ProjectUpdateSchema):
+async def update_project(
+    project_id: str,
+    project_data: ProjectUpdateSchema,
+    current_admin: Admin = Depends(get_current_admin),
+):
     """Update an existing project"""
     try:
         from app.config.database import database
@@ -116,7 +125,10 @@ async def update_project(project_id: str, project_data: ProjectUpdateSchema):
 
 
 @router.delete("/projects/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_project(project_id: str):
+async def delete_project(
+    project_id: str,
+    current_admin: Admin = Depends(get_current_admin),
+):
     """Delete a project"""
     try:
         from app.config.database import database
@@ -147,7 +159,8 @@ async def delete_project(project_id: str):
 async def get_all_projects(
     page: int = 1,
     per_page: int = 10,
-    status_filter: str = None
+    status_filter: str = None,
+    current_admin: Admin = Depends(get_current_admin),
 ):
     """Get all projects (including drafts) for admin"""
     try:

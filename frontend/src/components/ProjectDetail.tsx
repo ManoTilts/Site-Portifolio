@@ -15,7 +15,7 @@ import {
 } from 'lucide-react'
 import { Button } from './ui/Button'
 import { Badge } from './ui/Badge'
-import { Card, CardContent } from './ui/Card'
+import { Card } from './ui/Card'
 import { projectsApi, type Project } from '../lib/api'
 
 interface ProjectDetailProps {
@@ -362,7 +362,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, isOpen, onClos
                           Technologies
                         </h4>
                         <div className="flex flex-wrap gap-2">
-                          {project.technologies.map((tech, index) => (
+                          {project.technologies.map((tech) => (
                             <Badge key={tech} variant="outline" className="text-sm">
                               {tech}
                             </Badge>

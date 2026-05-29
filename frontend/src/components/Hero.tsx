@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, Download, Eye, ArrowRight, Sparkles, Settings, Zap, Palette, Terminal } from 'lucide-react'
+import { ChevronDown, Eye, ArrowRight, Sparkles, Settings, Fish, Terminal } from 'lucide-react'
 import { Button } from './ui/Button'
 import { Badge } from './ui/Badge'
 import { CVDownload } from './ui/CVDownload'
@@ -12,9 +12,9 @@ const names = ['ManoTilts', 'Felipe Barbosa']
 
 const THEME_META: Record<Theme, { icon: React.ReactNode; label: string; color: string }> = {
   default: { icon: <Settings size={16} />, label: 'Default', color: '#6366f1' },
-  angler:  { icon: <Zap size={16} />,      label: 'Angler',  color: '#dc2675' },
-  magic:   { icon: <Palette size={16} />,  label: 'Magic',   color: '#9333ea' },
-  cmd:     { icon: <Terminal size={16} />, label: 'CMD',     color: '#00ff00' },
+  angler:  { icon: <Fish size={16} />,     label: 'Angler',  color: '#38bdf8' },
+  magic:   { icon: <Sparkles size={16} />, label: 'Magic',   color: '#a855f7' },
+  cmd:     { icon: <Terminal size={16} />, label: 'CMD',     color: '#22c55e' },
 }
 
 const Hero = () => {
